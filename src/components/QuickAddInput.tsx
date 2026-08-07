@@ -25,11 +25,11 @@ export function QuickAddInput() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Capture a thought..."
-        className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900"
+        className="flex-1 rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-ink focus:outline-none"
       />
       <button
         type="submit"
-        className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+        className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-[background-color,transform] hover:bg-neutral-700 active:scale-[0.98]"
       >
         Add
       </button>

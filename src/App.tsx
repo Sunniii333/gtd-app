@@ -9,7 +9,7 @@ import { SomedayMaybe } from './pages/SomedayMaybe'
 
 function App() {
   return (
-    <div className="flex min-h-screen bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+    <div className="flex min-h-screen bg-canvas text-ink">
       <Sidebar />
       <main className="flex-1">
         <Routes>

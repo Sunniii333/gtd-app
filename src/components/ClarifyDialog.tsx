@@ -46,13 +46,11 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl dark:bg-neutral-900">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          Clarify: {task.title}
-        </h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4">
+      <div className="w-full max-w-md rounded-xl border border-hairline bg-surface p-6 shadow-[0_2px_24px_rgba(0,0,0,0.04)]">
+        <h3 className="font-serif text-lg italic text-ink">Clarify: {task.title}</h3>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-5 grid grid-cols-2 gap-2">
           {(
             [
               ['next', 'Next Action'],
@@ -65,10 +63,10 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`rounded-lg border px-3 py-2 text-sm ${
+              className={`rounded-md border px-3 py-2 text-sm transition-colors ${
                 mode === m
-                  ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300'
-                  : 'border-neutral-300 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300'
+                  ? 'border-ink bg-ink text-canvas'
+                  : 'border-hairline text-muted hover:border-ink hover:text-ink'
               }`}
             >
               {label}
@@ -76,24 +74,24 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
           ))}
         </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-5 space-y-3">
           {mode === 'next' && (
             <>
-              <label className="block text-xs font-medium text-neutral-500">
+              <label className="block text-xs font-medium uppercase tracking-wide text-muted">
                 Contexts (comma separated, e.g. home, calls)
                 <input
                   type="text"
                   value={contexts}
                   onChange={(e) => setContexts(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                  className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
                 />
               </label>
-              <label className="block text-xs font-medium text-neutral-500">
+              <label className="block text-xs font-medium uppercase tracking-wide text-muted">
                 Project (optional)
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                  className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
                 >
                   <option value="">None</option>
                   {projects.map((p) => (
@@ -107,46 +105,46 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
           )}
 
           {mode === 'project' && (
-            <label className="block text-xs font-medium text-neutral-500">
+            <label className="block text-xs font-medium uppercase tracking-wide text-muted">
               Project name
               <input
                 type="text"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
                 placeholder={task.title}
               />
             </label>
           )}
 
           {mode === 'waiting' && (
-            <label className="block text-xs font-medium text-neutral-500">
+            <label className="block text-xs font-medium uppercase tracking-wide text-muted">
               Waiting on whom?
               <input
                 type="text"
                 value={waitingOn}
                 onChange={(e) => setWaitingOn(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
               />
             </label>
           )}
 
           {mode === 'someday' && (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted">
               This will move to Someday/Maybe for future review.
             </p>
           )}
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
-          <div className="flex gap-2">
+        <div className="mt-6 flex items-center justify-between">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => {
                 completeTask(task.id)
                 onClose()
               }}
-              className="text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+              className="text-xs font-medium text-muted hover:text-ink"
             >
               Mark done
             </button>
@@ -156,7 +154,7 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
                 deleteTask(task.id)
                 onClose()
               }}
-              className="text-xs font-medium text-red-500 hover:text-red-700"
+              className="text-xs font-medium text-pale-red-ink hover:opacity-70"
             >
               Delete
             </button>
@@ -165,14 +163,14 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-3 py-2 text-sm text-neutral-600 dark:text-neutral-300"
+              className="rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={submit}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+              className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-[background-color,transform] hover:bg-neutral-700 active:scale-[0.98]"
             >
               Save
             </button>

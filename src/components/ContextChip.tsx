@@ -5,13 +5,13 @@ interface ContextChipProps {
 
 export function ContextChip({ label, onRemove }: ContextChipProps) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+    <span className="inline-flex items-center gap-1 rounded-full border border-hairline bg-canvas px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">
       {label}
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
-          className="text-violet-500 hover:text-violet-800 dark:hover:text-violet-100"
+          className="text-muted hover:text-ink"
           aria-label={`Remove ${label}`}
         >
           ×

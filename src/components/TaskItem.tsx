@@ -14,20 +14,18 @@ export function TaskItem({ task, projectName, extra }: TaskItemProps) {
   const deleteTask = useGtdStore((s) => s.deleteTask)
 
   return (
-    <li className="flex items-start gap-3 border-b border-neutral-200 py-3 last:border-0 dark:border-neutral-800">
+    <li className="flex items-start gap-3 border-b border-hairline py-4 last:border-0">
       <input
         type="checkbox"
         checked={task.status === 'completed'}
         onChange={() => completeTask(task.id)}
-        className="mt-1 h-4 w-4 accent-violet-600"
+        className="mt-1 h-4 w-4 accent-ink"
       />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-          {task.title}
-        </p>
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-ink">{task.title}</p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           {projectName && (
-            <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+            <span className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">
               {projectName}
             </span>
           )}
@@ -35,7 +33,7 @@ export function TaskItem({ task, projectName, extra }: TaskItemProps) {
             <ContextChip key={c} label={c} />
           ))}
           {task.waitingOn && (
-            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-500/20 dark:text-amber-300">
+            <span className="rounded-full bg-pale-yellow px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-pale-yellow-ink">
               waiting on {task.waitingOn}
             </span>
           )}
@@ -45,7 +43,7 @@ export function TaskItem({ task, projectName, extra }: TaskItemProps) {
       <button
         type="button"
         onClick={() => deleteTask(task.id)}
-        className="text-neutral-400 hover:text-red-500"
+        className="text-muted hover:text-pale-red-ink"
         aria-label="Delete task"
       >
         ×

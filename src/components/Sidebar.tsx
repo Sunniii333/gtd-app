@@ -2,10 +2,10 @@ import { NavLink } from 'react-router-dom'
 import { useGtdStore } from '../store/useGtdStore'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
+  `flex items-center justify-between border-l-2 px-4 py-2 text-sm transition-colors ${
     isActive
-      ? 'bg-violet-600 text-white'
-      : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+      ? 'border-ink font-medium text-ink'
+      : 'border-transparent text-muted hover:border-hairline hover:text-ink'
   }`
 
 export function Sidebar() {
@@ -29,17 +29,15 @@ export function Sidebar() {
   ]
 
   return (
-    <nav className="w-56 shrink-0 border-r border-neutral-200 p-4 dark:border-neutral-800">
-      <h1 className="mb-4 px-3 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-        GTD
-      </h1>
-      <ul className="space-y-1">
+    <nav className="w-60 shrink-0 border-r border-hairline bg-surface py-8">
+      <h1 className="mb-8 px-4 font-serif text-2xl italic tracking-tight text-ink">GTD</h1>
+      <ul className="space-y-0.5">
         {items.map((item) => (
           <li key={item.to}>
             <NavLink to={item.to} end={item.to === '/'} className={linkClass}>
               <span>{item.label}</span>
               {item.count > 0 && (
-                <span className="rounded-full bg-black/10 px-2 text-xs dark:bg-white/10">
+                <span className="rounded border border-hairline px-1.5 font-mono text-[11px] text-muted">
                   {item.count}
                 </span>
               )}

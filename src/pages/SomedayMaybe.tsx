@@ -8,17 +8,15 @@ export function SomedayMaybe() {
   const clarifyToNext = useGtdStore((s) => s.clarifyToNext)
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <h2 className="mb-1 text-xl font-semibold text-neutral-900 dark:text-neutral-100">
-        Someday/Maybe
-      </h2>
-      <p className="mb-4 text-sm text-neutral-500">
+    <div className="mx-auto max-w-2xl px-8 py-16">
+      <h2 className="font-serif text-3xl italic tracking-tight text-ink">Someday/Maybe</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
         Ideas worth keeping, not worth acting on yet.
       </p>
 
-      <ul>
+      <ul className="mt-8">
         {tasks.length === 0 && (
-          <p className="py-8 text-center text-sm text-neutral-400">Nothing parked here.</p>
+          <p className="py-12 text-center text-sm text-muted">Nothing parked here.</p>
         )}
         {tasks.map((task) => (
           <TaskItem
@@ -28,7 +26,7 @@ export function SomedayMaybe() {
               <button
                 type="button"
                 onClick={() => clarifyToNext(task.id, task.contexts, task.projectId)}
-                className="shrink-0 rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300"
+                className="shrink-0 rounded-md border border-hairline px-2.5 py-1 text-xs font-medium text-muted hover:border-ink hover:text-ink"
               >
                 Move to Next
               </button>
