@@ -8,6 +8,10 @@ export interface Task {
   contexts: string[]
   projectId?: string
   waitingOn?: string
+  /** Local start-of-day epoch ms. Hidden from Next Actions until this day arrives. */
+  deferUntil?: number
+  /** Local start-of-day epoch ms. A real deadline — never auto-filled. */
+  dueDate?: number
   createdAt: number
   updatedAt: number
   completedAt?: number

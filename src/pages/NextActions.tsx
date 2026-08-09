@@ -1,19 +1,39 @@
 import { useMemo, useState } from 'react'
 import { useGtdStore } from '../store/useGtdStore'
 import { TaskItem } from '../components/TaskItem'
+import { startOfDay } from '../utils/date'
 
 export function NextActions() {
   const allTasks = useGtdStore((s) => s.tasks)
-  const tasks = useMemo(() => allTasks.filter((t) => t.status === 'next'), [allTasks])
   const projects = useGtdStore((s) => s.projects)
   const [filter, setFilter] = useState<string>('')
+  const today = startOfDay()
+
+  const nextTasks = useMemo(() => allTasks.filter((t) => t.status === 'next'), [allTasks])
+
+  // A deferred task is not actionable yet, so it stays out of the list entirely.
+  const available = useMemo(
+    () => nextTasks.filter((t) => t.deferUntil === undefined || t.deferUntil <= today),
+    [nextTasks, today],
+  )
+  const deferredCount = nextTasks.length - available.length
 
   const allContexts = useMemo(
-    () => Array.from(new Set(tasks.flatMap((t) => t.contexts))).sort(),
-    [tasks],
+    () => Array.from(new Set(available.flatMap((t) => t.contexts))).sort(),
+    [available],
   )
 
-  const filtered = filter ? tasks.filter((t) => t.contexts.includes(filter)) : tasks
+  const visible = useMemo(() => {
+    const byContext = filter ? available.filter((t) => t.contexts.includes(filter)) : available
+    // Soonest deadline first; undated tasks keep their existing order behind them.
+    return [...byContext].sort((a, b) => {
+      if (a.dueDate !== undefined && b.dueDate !== undefined) return a.dueDate - b.dueDate
+      if (a.dueDate !== undefined) return -1
+      if (b.dueDate !== undefined) return 1
+      return 0
+    })
+  }, [available, filter])
+
   const projectName = (id?: string) => projects.find((p) => p.id === id)?.name
 
   return (
@@ -54,13 +74,19 @@ export function NextActions() {
       )}
 
       <ul className="mt-8">
-        {filtered.length === 0 && (
+        {visible.length === 0 && (
           <p className="py-12 text-center text-sm text-muted">No next actions here.</p>
         )}
-        {filtered.map((task) => (
+        {visible.map((task) => (
           <TaskItem key={task.id} task={task} projectName={projectName(task.projectId)} />
         ))}
       </ul>
+
+      {deferredCount > 0 && (
+        <p className="mt-6 border-t border-hairline pt-4 font-mono text-[11px] uppercase tracking-wide text-muted">
+          {deferredCount} deferred to a later date
+        </p>
+      )}
     </div>
   )
 }

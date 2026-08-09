@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Task } from '../types'
 import { useGtdStore } from '../store/useGtdStore'
+import { fromDateInput } from '../utils/date'
 
 interface ClarifyDialogProps {
   task: Task
@@ -15,6 +16,8 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
   const [projectId, setProjectId] = useState('')
   const [projectName, setProjectName] = useState('')
   const [waitingOn, setWaitingOn] = useState('')
+  const [deferUntil, setDeferUntil] = useState('')
+  const [dueDate, setDueDate] = useState('')
 
   const projects = useGtdStore((s) => s.projects)
   const clarifyToNext = useGtdStore((s) => s.clarifyToNext)
@@ -32,7 +35,10 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
       .map((c) => (c.startsWith('@') ? c : `@${c}`))
 
     if (mode === 'next') {
-      clarifyToNext(task.id, parsedContexts, projectId || undefined)
+      clarifyToNext(task.id, parsedContexts, projectId || undefined, {
+        deferUntil: fromDateInput(deferUntil),
+        dueDate: fromDateInput(dueDate),
+      })
     } else if (mode === 'project') {
       if (!projectName.trim()) return
       clarifyToProject(task.id, projectName.trim())
@@ -101,6 +107,29 @@ export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
                   ))}
                 </select>
               </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-medium uppercase tracking-wide text-muted">
+                  Defer until
+                  <input
+                    type="date"
+                    value={deferUntil}
+                    onChange={(e) => setDeferUntil(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                  />
+                </label>
+                <label className="block text-xs font-medium uppercase tracking-wide text-muted">
+                  Due date
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                  />
+                </label>
+              </div>
+              <p className="text-xs leading-relaxed text-muted">
+                Both optional. Set a due date only for a real deadline.
+              </p>
             </>
           )}
 

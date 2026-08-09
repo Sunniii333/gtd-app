@@ -1,7 +1,14 @@
 import type { ReactNode } from 'react'
 import type { Task } from '../types'
 import { useGtdStore } from '../store/useGtdStore'
+import { dueTone, formatDeferDate, formatDueDate } from '../utils/date'
 import { ContextChip } from './ContextChip'
+
+const DUE_TONE_CLASS = {
+  overdue: 'bg-pale-red text-pale-red-ink',
+  today: 'bg-pale-yellow text-pale-yellow-ink',
+  upcoming: 'border border-hairline text-muted',
+} as const
 
 interface TaskItemProps {
   task: Task
@@ -35,6 +42,20 @@ export function TaskItem({ task, projectName, extra }: TaskItemProps) {
           {task.waitingOn && (
             <span className="rounded-full bg-pale-yellow px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-pale-yellow-ink">
               waiting on {task.waitingOn}
+            </span>
+          )}
+          {task.dueDate !== undefined && (
+            <span
+              className={`rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
+                DUE_TONE_CLASS[dueTone(task.dueDate)]
+              }`}
+            >
+              {formatDueDate(task.dueDate)}
+            </span>
+          )}
+          {task.deferUntil !== undefined && (
+            <span className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">
+              {formatDeferDate(task.deferUntil)}
             </span>
           )}
         </div>

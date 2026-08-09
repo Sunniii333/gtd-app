@@ -14,6 +14,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+function isOptionalNumber(value: unknown): boolean {
+  return value === undefined || typeof value === 'number'
+}
+
 function isTask(value: unknown): value is Task {
   if (!isRecord(value)) return false
   return (
@@ -23,7 +27,9 @@ function isTask(value: unknown): value is Task {
     Array.isArray(value.contexts) &&
     value.contexts.every((c) => typeof c === 'string') &&
     typeof value.createdAt === 'number' &&
-    typeof value.updatedAt === 'number'
+    typeof value.updatedAt === 'number' &&
+    isOptionalNumber(value.deferUntil) &&
+    isOptionalNumber(value.dueDate)
   )
 }
 

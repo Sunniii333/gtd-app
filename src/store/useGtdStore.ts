@@ -4,6 +4,15 @@ import type { Project, ProjectStatus, Task, TaskStatus } from '../types'
 import type { BackupFile } from '../utils/backup'
 import { generateId } from '../utils/id'
 
+/**
+ * Passing this object makes it authoritative — an omitted field clears that date.
+ * Omitting the object entirely (e.g. "Move to Next") preserves existing dates.
+ */
+export interface TaskDates {
+  deferUntil?: number
+  dueDate?: number
+}
+
 interface GtdState {
   tasks: Task[]
   projects: Project[]
@@ -14,7 +23,12 @@ interface GtdState {
   deleteTask: (id: string) => void
   completeTask: (id: string) => void
 
-  clarifyToNext: (id: string, contexts: string[], projectId?: string) => void
+  clarifyToNext: (
+    id: string,
+    contexts: string[],
+    projectId?: string,
+    dates?: TaskDates,
+  ) => void
   clarifyToWaiting: (id: string, waitingOn: string) => void
   clarifyToSomeday: (id: string) => void
   clarifyToProject: (id: string, projectName: string) => void
@@ -81,11 +95,19 @@ export const useGtdStore = create<GtdState>()(
           ),
         })),
 
-      clarifyToNext: (id, contexts, projectId) =>
+      clarifyToNext: (id, contexts, projectId, dates) =>
         set((state) => ({
           tasks: state.tasks.map((t) =>
             t.id === id
-              ? { ...t, status: 'next', contexts, projectId, updatedAt: Date.now() }
+              ? {
+                  ...t,
+                  status: 'next',
+                  contexts,
+                  projectId,
+                  deferUntil: dates ? dates.deferUntil : t.deferUntil,
+                  dueDate: dates ? dates.dueDate : t.dueDate,
+                  updatedAt: Date.now(),
+                }
               : t,
           ),
         })),
