@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useGtdStore } from '../store/useGtdStore'
-import { formatLastReview } from '../utils/date'
+import { formatLastReview, startOfDay } from '../utils/date'
 import { DataControls } from './DataControls'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -15,15 +15,24 @@ export function Sidebar() {
   const projects = useGtdStore((s) => s.projects)
   const lastReviewAt = useGtdStore((s) => s.lastReviewAt)
 
+  const today = startOfDay()
+  const nextTasks = tasks.filter((t) => t.status === 'next')
+  // Mirrors what each page actually shows, so a badge never promises a hidden task.
+  const available = nextTasks.filter((t) => t.deferUntil === undefined || t.deferUntil <= today)
+
   const counts = {
+    today: available.filter(
+      (t) => (t.dueDate !== undefined && t.dueDate <= today) || t.deferUntil !== undefined,
+    ).length,
     inbox: tasks.filter((t) => t.status === 'inbox').length,
-    next: tasks.filter((t) => t.status === 'next').length,
+    next: available.length,
     projects: projects.filter((p) => p.status === 'active').length,
     waiting: tasks.filter((t) => t.status === 'waiting').length,
     someday: tasks.filter((t) => t.status === 'someday').length,
   }
 
   const items: { to: string; label: string; count: number }[] = [
+    { to: '/today', label: 'Today', count: counts.today },
     { to: '/', label: 'Inbox', count: counts.inbox },
     { to: '/next', label: 'Next Actions', count: counts.next },
     { to: '/projects', label: 'Projects', count: counts.projects },

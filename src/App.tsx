@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { Sidebar } from './components/Sidebar'
+import { Today } from './pages/Today'
 import { Inbox } from './pages/Inbox'
 import { NextActions } from './pages/NextActions'
 import { Projects } from './pages/Projects'
@@ -15,6 +16,7 @@ function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Inbox />} />
+          <Route path="/today" element={<Today />} />
           <Route path="/next" element={<NextActions />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
