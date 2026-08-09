@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useGtdStore } from '../store/useGtdStore'
+import { DataControls } from './DataControls'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center justify-between border-l-2 px-4 py-2 text-sm transition-colors ${
@@ -45,6 +46,7 @@ export function Sidebar() {
           </li>
         ))}
       </ul>
+      <DataControls />
     </nav>
   )
 }

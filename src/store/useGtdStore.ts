@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Project, ProjectStatus, Task, TaskStatus } from '../types'
+import type { BackupFile } from '../utils/backup'
 import { generateId } from '../utils/id'
 
 interface GtdState {
@@ -21,11 +22,14 @@ interface GtdState {
   addProject: (name: string, notes?: string) => string
   updateProject: (id: string, patch: Partial<Project>) => void
   setProjectStatus: (id: string, status: ProjectStatus) => void
+
+  exportData: () => BackupFile
+  importData: (backup: BackupFile) => void
 }
 
 export const useGtdStore = create<GtdState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       tasks: [],
       projects: [],
 
@@ -139,6 +143,14 @@ export const useGtdStore = create<GtdState>()(
         set((state) => ({
           projects: state.projects.map((p) => (p.id === id ? { ...p, status } : p)),
         })),
+
+      exportData: () => {
+        const { tasks, projects } = get()
+        return { version: 1, exportedAt: Date.now(), tasks, projects }
+      },
+
+      importData: (backup) =>
+        set({ tasks: backup.tasks, projects: backup.projects }),
     }),
     { name: 'gtd-storage' },
   ),
