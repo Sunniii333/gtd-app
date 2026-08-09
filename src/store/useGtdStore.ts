@@ -16,6 +16,8 @@ export interface TaskDates {
 interface GtdState {
   tasks: Task[]
   projects: Project[]
+  /** Epoch ms of the last completed weekly review. */
+  lastReviewAt?: number
 
   addTask: (title: string) => void
   addTaskToProject: (title: string, projectId: string) => void
@@ -36,6 +38,8 @@ interface GtdState {
   addProject: (name: string, notes?: string) => string
   updateProject: (id: string, patch: Partial<Project>) => void
   setProjectStatus: (id: string, status: ProjectStatus) => void
+
+  completeReview: () => void
 
   exportData: () => BackupFile
   importData: (backup: BackupFile) => void
@@ -166,13 +170,19 @@ export const useGtdStore = create<GtdState>()(
           projects: state.projects.map((p) => (p.id === id ? { ...p, status } : p)),
         })),
 
+      completeReview: () => set({ lastReviewAt: Date.now() }),
+
       exportData: () => {
-        const { tasks, projects } = get()
-        return { version: 1, exportedAt: Date.now(), tasks, projects }
+        const { tasks, projects, lastReviewAt } = get()
+        return { version: 1, exportedAt: Date.now(), tasks, projects, lastReviewAt }
       },
 
       importData: (backup) =>
-        set({ tasks: backup.tasks, projects: backup.projects }),
+        set({
+          tasks: backup.tasks,
+          projects: backup.projects,
+          lastReviewAt: backup.lastReviewAt,
+        }),
     }),
     { name: 'gtd-storage' },
   ),

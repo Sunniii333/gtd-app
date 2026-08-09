@@ -8,6 +8,7 @@ export interface BackupFile {
   exportedAt: number
   tasks: Task[]
   projects: Project[]
+  lastReviewAt?: number
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -69,6 +70,7 @@ export function parseBackup(text: string): BackupFile {
     exportedAt: typeof raw.exportedAt === 'number' ? raw.exportedAt : Date.now(),
     tasks: raw.tasks,
     projects: raw.projects,
+    lastReviewAt: typeof raw.lastReviewAt === 'number' ? raw.lastReviewAt : undefined,
   }
 }
 

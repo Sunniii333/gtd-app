@@ -6,6 +6,7 @@ import { Projects } from './pages/Projects'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { WaitingFor } from './pages/WaitingFor'
 import { SomedayMaybe } from './pages/SomedayMaybe'
+import { WeeklyReview } from './pages/WeeklyReview'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/waiting" element={<WaitingFor />} />
           <Route path="/someday" element={<SomedayMaybe />} />
+          <Route path="/review" element={<WeeklyReview />} />
         </Routes>
       </main>
     </div>

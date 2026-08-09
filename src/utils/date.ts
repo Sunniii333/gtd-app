@@ -30,6 +30,20 @@ export function daysBetween(from: number, to: number): number {
   return Math.round((startOfDay(to) - startOfDay(from)) / DAY_MS)
 }
 
+export function addDays(epoch: number, days: number): number {
+  const date = new Date(epoch)
+  date.setDate(date.getDate() + days)
+  return startOfDay(date)
+}
+
+export function formatLastReview(lastReviewAt?: number): string {
+  if (lastReviewAt === undefined) return 'never reviewed'
+  const days = daysBetween(lastReviewAt, Date.now())
+  if (days <= 0) return 'reviewed today'
+  if (days === 1) return 'reviewed yesterday'
+  return `reviewed ${days} days ago`
+}
+
 export type DueTone = 'overdue' | 'today' | 'upcoming'
 
 export function dueTone(dueDate: number, today = startOfDay()): DueTone {

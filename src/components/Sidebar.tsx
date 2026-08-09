@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useGtdStore } from '../store/useGtdStore'
+import { formatLastReview } from '../utils/date'
 import { DataControls } from './DataControls'
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -12,6 +13,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Sidebar() {
   const tasks = useGtdStore((s) => s.tasks)
   const projects = useGtdStore((s) => s.projects)
+  const lastReviewAt = useGtdStore((s) => s.lastReviewAt)
 
   const counts = {
     inbox: tasks.filter((t) => t.status === 'inbox').length,
@@ -46,6 +48,16 @@ export function Sidebar() {
           </li>
         ))}
       </ul>
+
+      <div className="mt-6 border-t border-hairline pt-4">
+        <NavLink to="/review" className={linkClass}>
+          <span>Weekly Review</span>
+        </NavLink>
+        <p className="px-4 pt-1 font-mono text-[10px] uppercase tracking-wide text-muted">
+          {formatLastReview(lastReviewAt)}
+        </p>
+      </div>
+
       <DataControls />
     </nav>
   )
