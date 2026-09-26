@@ -1,263 +1,379 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { CaptureBar } from '../components/CaptureBar'
+import { DataControls } from '../components/DataControls'
+import { ItemRow } from '../components/ItemRow'
+import { StalledProjectCard } from '../components/StalledProjectCard'
+import { Button, SectionTitle } from '../components/ui'
+import { isOpen, stalledProjects, visibleNextActions } from '../domain/gtd'
 import { useGtdStore } from '../store/useGtdStore'
-import type { Project, Task } from '../types'
-import { addDays, formatDeferDate, formatDueDate, startOfDay } from '../utils/date'
+import { addDays, formatDay, startOfDay } from '../utils/date'
 
-function StepList({ tasks, empty }: { tasks: Task[]; empty: string }) {
-  if (tasks.length === 0) {
-    return <p className="text-sm text-muted">{empty}</p>
-  }
-  return (
-    <ul className="space-y-2">
-      {tasks.map((task) => (
-        <li key={task.id} className="flex flex-wrap items-center gap-2 text-sm text-ink">
-          <span>{task.title}</span>
-          {task.waitingOn && (
-            <span className="rounded-full bg-pale-yellow px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-pale-yellow-ink">
-              waiting on {task.waitingOn}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
-  )
+/** Prompts in the spirit of the book's "incompletion trigger list". */
+const TRIGGERS = [
+  'Promises made to others — boss, team, family, friends',
+  'Communications to send: calls, emails, messages, thank-yous',
+  'Upcoming events: meetings, trips, birthdays, deadlines',
+  'Projects started but not finished, or not yet started',
+  'Home: repairs, errands, bills, paperwork, health, car',
+  'Money: payments, taxes, budget, insurance, investments',
+  'Waiting on anyone? Anything you are expecting to arrive?',
+  'Things to learn, read, look into, decide',
+]
+
+type Phase = 'Get clear' | 'Get current' | 'Get creative'
+
+interface Step {
+  phase: Phase
+  title: string
+  hint: string
+  body: ReactNode
 }
 
-export function WeeklyReview() {
-  const tasks = useGtdStore((s) => s.tasks)
-  const projects = useGtdStore((s) => s.projects)
-  const completeReview = useGtdStore((s) => s.completeReview)
+const Go = ({ to, children }: { to: string; children: ReactNode }) => (
+  <Link to={to} className="mt-3 inline-block text-xs text-ink underline">
+    {children}
+  </Link>
+)
 
-  const [stepIndex, setStepIndex] = useState(0)
+export function WeeklyReview() {
+  const items = useGtdStore((s) => s.items)
+  const projects = useGtdStore((s) => s.projects)
+  const lastReviewAt = useGtdStore((s) => s.lastReviewAt)
+  const completeReview = useGtdStore((s) => s.completeReview)
+  const reconsider = useGtdStore((s) => s.reconsider)
+  const [index, setIndex] = useState(0)
   const [finished, setFinished] = useState(false)
   const today = startOfDay()
 
-  const inbox = useMemo(() => tasks.filter((t) => t.status === 'inbox'), [tasks])
-  const nextActions = useMemo(() => tasks.filter((t) => t.status === 'next'), [tasks])
-  const waiting = useMemo(() => tasks.filter((t) => t.status === 'waiting'), [tasks])
-  const someday = useMemo(() => tasks.filter((t) => t.status === 'someday'), [tasks])
+  const v = useMemo(() => {
+    const data = { items, projects }
+    const since = Math.min(lastReviewAt ?? Infinity, addDays(today, -7))
+    const calendar = items.filter((i) => i.date !== undefined && (i.status === 'calendar' || i.status === 'done'))
+    return {
+      inbox: items.filter((i) => i.status === 'inbox'),
+      next: visibleNextActions(data),
+      pastCalendar: calendar
+        .filter((i) => i.date! < today && i.date! >= startOfDay(since))
+        .sort((a, b) => a.date! - b.date!),
+      upcoming: calendar
+        .filter((i) => i.status === 'calendar' && i.date! >= today && i.date! <= addDays(today, 14))
+        .sort((a, b) => a.date! - b.date!),
+      waiting: items.filter((i) => i.status === 'waiting'),
+      stalled: stalledProjects(data),
+      active: projects.filter((p) => p.status === 'active'),
+      someday: items.filter((i) => i.status === 'someday'),
+      somedayProjects: projects.filter((p) => p.status === 'someday'),
+      openFor: (id: string) => items.filter((i) => i.projectId === id && isOpen(i)).length,
+    }
+  }, [items, projects, lastReviewAt, today])
 
-  // A project with no open next action has nothing pulling it forward — GTD calls
-  // this stalled, and catching it is the whole point of the weekly review.
-  const stalled = useMemo(() => {
-    const activeProjects = projects.filter((p) => p.status === 'active')
-    return activeProjects
-      .map((project: Project) => ({
-        project,
-        waitingCount: tasks.filter((t) => t.projectId === project.id && t.status === 'waiting')
-          .length,
-        nextCount: tasks.filter((t) => t.projectId === project.id && t.status === 'next').length,
-      }))
-      .filter((row) => row.nextCount === 0)
-  }, [projects, tasks])
-
-  const upcoming = useMemo(() => {
-    const horizon = addDays(today, 7)
-    return tasks
-      .filter(
-        (t) =>
-          t.status !== 'completed' &&
-          ((t.dueDate !== undefined && t.dueDate <= horizon) ||
-            (t.deferUntil !== undefined && t.deferUntil > today && t.deferUntil <= horizon)),
-      )
-      .sort((a, b) => (a.dueDate ?? a.deferUntil ?? 0) - (b.dueDate ?? b.deferUntil ?? 0))
-  }, [tasks, today])
-
-  const steps: { title: string; hint: string; body: ReactNode }[] = [
+  const steps: Step[] = [
     {
-      title: 'Clear the Inbox',
-      hint: 'Process every captured item until nothing is left unclarified.',
+      phase: 'Get clear',
+      title: 'Collect loose papers and materials',
+      hint: 'Receipts, notes, business cards, screenshots, voice memos, bag and desk. Capture each one.',
+      body: <CaptureBar placeholder="Capture each loose item…" />,
+    },
+    {
+      phase: 'Get clear',
+      title: 'Get the Inbox to zero',
+      hint: 'Clarify every item until nothing is left undecided.',
       body:
-        inbox.length === 0 ? (
-          <p className="text-sm text-muted">Inbox is empty. Nothing left to process.</p>
+        v.inbox.length === 0 ? (
+          <p className="text-sm text-muted">Inbox is empty.</p>
         ) : (
-          <div>
+          <>
             <p className="text-sm text-ink">
-              {inbox.length} item{inbox.length === 1 ? '' : 's'} still waiting to be clarified.
+              {v.inbox.length} item{v.inbox.length === 1 ? '' : 's'} still to clarify.
             </p>
-            <StepList tasks={inbox} empty="" />
-            <Link to="/" className="mt-3 inline-block text-xs text-ink underline">
-              Go to Inbox
-            </Link>
-          </div>
+            <Go to="/">Go to Inbox and press “Process all” →</Go>
+          </>
         ),
     },
     {
-      title: 'Review Next Actions',
-      hint: 'Is each one still the real next physical step? Delete or reword what is stale.',
+      phase: 'Get clear',
+      title: 'Empty your head',
+      hint: 'Write down anything new that’s on your mind. Use the prompts below to jog your memory.',
       body: (
-        <div>
-          <StepList tasks={nextActions} empty="No next actions on the list." />
-          <Link to="/next" className="mt-3 inline-block text-xs text-ink underline">
-            Go to Next Actions
-          </Link>
-        </div>
+        <>
+          <CaptureBar placeholder="What’s on your mind?" />
+          <ul className="mt-4 space-y-1.5 text-sm text-muted">
+            {TRIGGERS.map((t) => (
+              <li key={t}>· {t}</li>
+            ))}
+          </ul>
+        </>
       ),
     },
     {
-      title: 'Review Waiting For',
-      hint: 'Anyone you need to chase? Anything that quietly arrived already?',
-      body: (
-        <div>
-          <StepList tasks={waiting} empty="Nothing is blocked on anyone else." />
-          <Link to="/waiting" className="mt-3 inline-block text-xs text-ink underline">
-            Go to Waiting For
-          </Link>
-        </div>
+      phase: 'Get current',
+      title: 'Review Next Actions lists',
+      hint: 'Tick what’s done. Is each one still the real next physical step? ↺ anything that isn’t.',
+      body: v.next.length ? (
+        <ul>
+          {v.next.map((i) => (
+            <ItemRow key={i.id} item={i} />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted">No next actions.</p>
       ),
     },
     {
-      title: 'Review Projects',
-      hint: 'Every active project needs at least one next action, or it stalls.',
-      body:
-        stalled.length === 0 ? (
-          <p className="text-sm text-muted">
-            Every active project has a next action. Nothing is stalled.
-          </p>
-        ) : (
-          <div>
-            <p className="text-sm text-ink">
-              {stalled.length} project{stalled.length === 1 ? '' : 's'} with no next action:
-            </p>
-            <ul className="mt-2 space-y-2">
-              {stalled.map(({ project, waitingCount }) => (
-                <li
-                  key={project.id}
-                  className="rounded-lg border border-hairline bg-pale-red px-3 py-2"
-                >
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="text-sm text-pale-red-ink underline"
-                  >
-                    {project.name}
-                  </Link>
-                  {waitingCount > 0 && (
-                    <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wide text-pale-red-ink">
-                      {waitingCount} waiting-for item{waitingCount === 1 ? '' : 's'} — may be fine
-                    </p>
-                  )}
+      phase: 'Get current',
+      title: 'Review previous calendar',
+      hint: 'Anything that happened and left a follow-up? Capture it. Anything that didn’t happen needs a decision.',
+      body: (
+        <>
+          {v.pastCalendar.length ? (
+            <ul>
+              {v.pastCalendar.map((i) => (
+                <ItemRow
+                  key={i.id}
+                  item={i}
+                  extra={
+                    i.status === 'calendar' && (
+                      <span className="font-mono text-[10px] uppercase text-pale-red-ink">missed</span>
+                    )
+                  }
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted">No calendar entries since the last review.</p>
+          )}
+          <div className="mt-4">
+            <CaptureBar placeholder="Capture any follow-up…" />
+          </div>
+        </>
+      ),
+    },
+    {
+      phase: 'Get current',
+      title: 'Review upcoming calendar',
+      hint: 'The next two weeks. Anything to prepare or arrange beforehand? Capture it.',
+      body: (
+        <>
+          {v.upcoming.length ? (
+            <ul className="space-y-1.5">
+              {v.upcoming.map((i) => (
+                <li key={i.id} className="flex gap-3 text-sm">
+                  <span className="w-24 shrink-0 font-mono text-xs text-muted">{formatDay(i.date!, today)}</span>
+                  <span className="text-ink">{i.title}</span>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="text-sm text-muted">Nothing on the calendar in the next two weeks.</p>
+          )}
+          <div className="mt-4">
+            <CaptureBar placeholder="Capture any preparation…" />
           </div>
-        ),
-    },
-    {
-      title: 'Review Someday/Maybe',
-      hint: 'Pull anything up that you are ready to start. Drop what you no longer want.',
-      body: (
-        <div>
-          <StepList tasks={someday} empty="Nothing parked here." />
-          <Link to="/someday" className="mt-3 inline-block text-xs text-ink underline">
-            Go to Someday/Maybe
-          </Link>
-        </div>
+        </>
       ),
     },
     {
-      title: 'Look ahead',
-      hint: 'Anything due or arriving in the next seven days?',
-      body:
-        upcoming.length === 0 ? (
-          <p className="text-sm text-muted">Nothing dated in the next week.</p>
-        ) : (
-          <ul className="space-y-2">
-            {upcoming.map((task) => (
-              <li key={task.id} className="flex flex-wrap items-center gap-2 text-sm text-ink">
-                <span>{task.title}</span>
-                {task.dueDate !== undefined && (
-                  <span className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">
-                    {formatDueDate(task.dueDate)}
-                  </span>
-                )}
-                {task.deferUntil !== undefined && task.deferUntil > today && (
-                  <span className="rounded-full border border-hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">
-                    {formatDeferDate(task.deferUntil)}
-                  </span>
-                )}
-              </li>
-            ))}
+      phase: 'Get current',
+      title: 'Review Waiting For',
+      hint: 'Tick what arrived. Anyone to chase? Chasing is a next action — capture it.',
+      body: v.waiting.length ? (
+        <ul>
+          {v.waiting.map((i) => (
+            <ItemRow key={i.id} item={i} />
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted">Nothing pending on others.</p>
+      ),
+    },
+    {
+      phase: 'Get current',
+      title: 'Review Projects',
+      hint: 'Every active project needs at least one action in motion. Fix each stalled one right here.',
+      body: (
+        <>
+          {v.stalled.length > 0 && (
+            <ul className="mb-4 space-y-2">
+              {v.stalled.map((p) => (
+                <StalledProjectCard key={p.id} project={p} />
+              ))}
+            </ul>
+          )}
+          {v.active.length === 0 ? (
+            <p className="text-sm text-muted">No active projects.</p>
+          ) : v.stalled.length === 0 ? (
+            <p className="text-sm text-muted">Every active project has something in motion.</p>
+          ) : null}
+          <ul className="mt-2 space-y-1">
+            {v.active
+              .filter((p) => !v.stalled.includes(p))
+              .map((p) => (
+                <li key={p.id} className="flex justify-between gap-3 text-sm">
+                  <Link to={`/projects/${p.id}`} className="text-ink hover:underline">
+                    {p.name}
+                  </Link>
+                  <span className="font-mono text-xs text-muted">{v.openFor(p.id)} open</span>
+                </li>
+              ))}
           </ul>
-        ),
+        </>
+      ),
+    },
+    {
+      phase: 'Get current',
+      title: 'Review relevant checklists',
+      hint: 'Any recurring responsibilities, routines or checklists you keep? Anything there that needs action? Capture it.',
+      body: <CaptureBar placeholder="Capture anything a checklist reminds you of…" />,
+    },
+    {
+      phase: 'Get creative',
+      title: 'Review Someday/Maybe',
+      hint: 'Ready to start any of these? Activate it. No longer interested? Delete it.',
+      body: (
+        <>
+          {v.somedayProjects.length > 0 && (
+            <>
+              <SectionTitle>Projects on hold</SectionTitle>
+              <ul className="mb-2 space-y-1">
+                {v.somedayProjects.map((p) => (
+                  <li key={p.id} className="text-sm">
+                    <Link to={`/projects/${p.id}`} className="text-ink hover:underline">
+                      {p.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {v.someday.length ? (
+            <ul>
+              {v.someday.map((i) => (
+                <ItemRow
+                  key={i.id}
+                  item={i}
+                  extra={
+                    <Button variant="ghost" onClick={() => reconsider(i.id)}>
+                      Activate
+                    </Button>
+                  }
+                />
+              ))}
+            </ul>
+          ) : (
+            v.somedayProjects.length === 0 && <p className="text-sm text-muted">Nothing incubating.</p>
+          )}
+        </>
+      ),
+    },
+    {
+      phase: 'Get creative',
+      title: 'Be creative and courageous',
+      hint: 'Any new, bold or crazy ideas worth capturing? Add them — you can decide later.',
+      body: <CaptureBar placeholder="A new idea…" />,
     },
   ]
 
   if (finished) {
     return (
-      <div className="mx-auto max-w-2xl px-8 py-16">
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8 sm:py-14">
         <h2 className="font-serif text-3xl italic tracking-tight text-ink">Review complete</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          All six steps done. Your lists are trustworthy again until next week.
+          Clear, current, and creative. Your lists can be trusted again for the week ahead.
         </p>
-        <button
-          type="button"
+        {v.inbox.length > 0 && (
+          <p className="mt-4 text-sm text-ink">
+            {v.inbox.length} item{v.inbox.length === 1 ? '' : 's'} in your Inbox —{' '}
+            <Link to="/" className="underline">
+              clarify them now
+            </Link>
+            .
+          </p>
+        )}
+        <Button
+          className="mt-8"
           onClick={() => {
-            setStepIndex(0)
+            setIndex(0)
             setFinished(false)
           }}
-          className="mt-8 rounded-md border border-hairline px-4 py-2 text-sm text-muted hover:border-ink hover:text-ink"
         >
-          Run it again
-        </button>
+          Start again
+        </Button>
       </div>
     )
   }
 
-  const step = steps[stepIndex]
-  const isLast = stepIndex === steps.length - 1
+  const step = steps[index]
+  const isLast = index === steps.length - 1
+  const phases: Phase[] = ['Get clear', 'Get current', 'Get creative']
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-16">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8 sm:py-14">
       <h2 className="font-serif text-3xl italic tracking-tight text-ink">Weekly Review</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Six steps, one at a time. This is the habit that keeps the rest of the system honest.
+        The habit that keeps the whole system trustworthy. Once a week, step by step.
       </p>
 
-      <div className="mt-8">
-        <div className="flex gap-1">
-          {steps.map((s, i) => (
-            <div
-              key={s.title}
-              className={`h-0.5 flex-1 ${i <= stepIndex ? 'bg-ink' : 'bg-hairline'}`}
-            />
-          ))}
-        </div>
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-wide text-muted">
-          Step {stepIndex + 1} of {steps.length}
-        </p>
+      <div className="mt-8 grid grid-cols-3 gap-2">
+        {phases.map((phase) => {
+          const inPhase = steps.map((s, i) => [s, i] as const).filter(([s]) => s.phase === phase)
+          return (
+            <div key={phase}>
+              <p
+                className={`font-mono text-[10px] uppercase tracking-wide ${
+                  step.phase === phase ? 'text-ink' : 'text-muted'
+                }`}
+              >
+                {phase}
+              </p>
+              <div className="mt-1 flex gap-0.5">
+                {inPhase.map(([s, i]) => (
+                  <button
+                    key={s.title}
+                    type="button"
+                    onClick={() => setIndex(i)}
+                    aria-label={s.title}
+                    className={`h-1 flex-1 rounded-full ${i <= index ? 'bg-ink' : 'bg-hairline'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
-      <div className="mt-8 rounded-xl border border-hairline bg-surface p-6">
-        <h3 className="font-serif text-xl italic text-ink">{step.title}</h3>
+      <div className="mt-6 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+        <p className="font-mono text-[11px] uppercase tracking-wide text-muted">
+          {index + 1} / {steps.length}
+        </p>
+        <h3 className="mt-1 font-serif text-xl italic text-ink">{step.title}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted">{step.hint}</p>
         <div className="mt-5">{step.body}</div>
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => setStepIndex((i) => i - 1)}
-          disabled={stepIndex === 0}
-          className="text-xs font-medium text-muted hover:text-ink disabled:invisible"
-        >
+        <Button variant="ghost" onClick={() => setIndex((i) => i - 1)} disabled={index === 0} className="disabled:invisible">
           ← Back
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="primary"
           onClick={() => {
             if (isLast) {
               completeReview()
               setFinished(true)
             } else {
-              setStepIndex((i) => i + 1)
+              setIndex((i) => i + 1)
             }
+            window.scrollTo({ top: 0 })
           }}
-          className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-[background-color,transform] hover:bg-neutral-700 active:scale-[0.98]"
         >
-          {isLast ? 'Finish review' : 'Done — next step'}
-        </button>
+          {isLast ? 'Finish review' : 'Done — next'}
+        </Button>
+      </div>
+
+      <div className="mt-10 md:hidden">
+        <DataControls />
       </div>
     </div>
   )

@@ -1,58 +1,74 @@
 import { useMemo, useState } from 'react'
-import { useGtdStore } from '../store/useGtdStore'
-import { QuickAddInput } from '../components/QuickAddInput'
 import { ClarifyDialog } from '../components/ClarifyDialog'
-import type { Task } from '../types'
+import { Button, Empty, Page } from '../components/ui'
+import { useGtdStore } from '../store/useGtdStore'
+import type { Item } from '../types'
 
 export function Inbox() {
-  const allTasks = useGtdStore((s) => s.tasks)
-  const tasks = useMemo(() => allTasks.filter((t) => t.status === 'inbox'), [allTasks])
-  const deleteTask = useGtdStore((s) => s.deleteTask)
-  const [clarifying, setClarifying] = useState<Task | null>(null)
+  const allItems = useGtdStore((s) => s.items)
+  // Oldest first: the book says process from the top, one item at a time, in order.
+  const items = useMemo(
+    () => allItems.filter((i) => i.status === 'inbox').sort((a, b) => a.createdAt - b.createdAt),
+    [allItems],
+  )
+  const [clarifyingId, setClarifyingId] = useState<string | null>(null)
+  const [processing, setProcessing] = useState(false)
+  // While processing, finishing one item moves straight on to the next until the Inbox is empty.
+  const clarifying: Item | undefined =
+    items.find((i) => i.id === clarifyingId) ?? (processing ? items[0] : undefined)
+  const close = () => {
+    setProcessing(false)
+    setClarifyingId(null)
+  }
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-16">
-      <h2 className="font-serif text-3xl italic tracking-tight text-ink">Inbox</h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        Capture anything on your mind, then clarify each item into what it really is.
-      </p>
-
-      <div className="mt-8">
-        <QuickAddInput />
-      </div>
-
-      <ul className="mt-8">
-        {tasks.length === 0 && (
-          <p className="py-12 text-center text-sm text-muted">Inbox zero. Nice.</p>
-        )}
-        {tasks.map((task) => (
-          <li
-            key={task.id}
-            className="flex items-center justify-between gap-3 border-b border-hairline py-4 last:border-0"
+    <Page
+      title="Inbox"
+      subtitle="Everything captured, nothing decided yet. Take the top item, decide what it is, never put it back."
+      action={
+        items.length > 0 && (
+          <Button
+            variant="primary"
+            onClick={() => {
+              setProcessing(true)
+              setClarifyingId(items[0].id)
+            }}
           >
-            <span className="text-sm text-ink">{task.title}</span>
-            <div className="flex shrink-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setClarifying(task)}
-                className="rounded-md bg-ink px-3 py-1.5 text-xs font-medium text-canvas transition-[background-color,transform] hover:bg-neutral-700 active:scale-[0.98]"
-              >
+            Process all
+          </Button>
+        )
+      }
+    >
+      {items.length === 0 ? (
+        <Empty>Inbox zero. Everything is clarified.</Empty>
+      ) : (
+        <ul>
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-center justify-between gap-3 border-b border-hairline py-3.5 last:border-0"
+            >
+              <span className="text-sm text-ink">{item.title}</span>
+              <Button className="shrink-0 text-xs" onClick={() => setClarifyingId(item.id)}>
                 Clarify
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteTask(task.id)}
-                className="text-muted hover:text-pale-red-ink"
-                aria-label="Delete task"
-              >
-                ×
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      {clarifying && <ClarifyDialog task={clarifying} onClose={() => setClarifying(null)} />}
-    </div>
+      {clarifying && (
+        <ClarifyDialog
+          key={clarifying.id}
+          item={clarifying}
+          onClose={() => {
+            // A processed item has left the Inbox; only a cancel leaves it here.
+            const inbox = useGtdStore.getState().items.filter((i) => i.status === 'inbox')
+            const cancelled = inbox.some((i) => i.id === clarifying.id)
+            if (!processing || cancelled || inbox.length === 0) close()
+          }}
+        />
+      )}
+    </Page>
   )
 }

@@ -36,37 +36,30 @@ export function addDays(epoch: number, days: number): number {
   return startOfDay(date)
 }
 
+/** "Today", "Tomorrow", "Yesterday", or "Mon 28 Sep". */
+export function formatDay(epoch: number, today = startOfDay()): string {
+  const diff = daysBetween(today, epoch)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Tomorrow'
+  if (diff === -1) return 'Yesterday'
+  return new Date(epoch).toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
+/** "today", "1 day", "5 days" — how long something has been sitting. */
+export function formatAge(since: number, now = Date.now()): string {
+  const days = daysBetween(since, now)
+  if (days <= 0) return 'today'
+  return days === 1 ? '1 day' : `${days} days`
+}
+
 export function formatLastReview(lastReviewAt?: number): string {
   if (lastReviewAt === undefined) return 'never reviewed'
   const days = daysBetween(lastReviewAt, Date.now())
   if (days <= 0) return 'reviewed today'
   if (days === 1) return 'reviewed yesterday'
   return `reviewed ${days} days ago`
-}
-
-export type DueTone = 'overdue' | 'today' | 'upcoming'
-
-export function dueTone(dueDate: number, today = startOfDay()): DueTone {
-  if (dueDate < today) return 'overdue'
-  if (dueDate === today) return 'today'
-  return 'upcoming'
-}
-
-export function formatDueDate(dueDate: number, today = startOfDay()): string {
-  const days = daysBetween(today, dueDate)
-  if (days === 0) return 'due today'
-  if (days === 1) return 'due tomorrow'
-  if (days === -1) return '1 day overdue'
-  if (days < 0) return `${-days} days overdue`
-  return `due ${new Date(dueDate).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  })}`
-}
-
-export function formatDeferDate(deferUntil: number): string {
-  return `deferred to ${new Date(deferUntil).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  })}`
 }

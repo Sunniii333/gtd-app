@@ -1,211 +1,257 @@
 import { useState } from 'react'
-import type { Task } from '../types'
+import type { Item } from '../types'
 import { useGtdStore } from '../store/useGtdStore'
 import { fromDateInput } from '../utils/date'
+import { NextStepForm } from './NextStepForm'
+import { Button, Modal, inputClass, labelClass } from './ui'
 
-interface ClarifyDialogProps {
-  task: Task
-  onClose: () => void
+type Step = 'actionable' | 'not-actionable' | 'someday' | 'reference' | 'project?' | 'project' | 'two-minutes' | 'next'
+
+function Question({ children }: { children: string }) {
+  return <p className="font-serif text-xl italic text-ink">{children}</p>
 }
 
-type Mode = 'next' | 'project' | 'waiting' | 'someday'
+function Choice({ title, hint, onClick }: { title: string; hint?: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-lg border border-hairline px-4 py-3 text-left transition-colors hover:border-ink"
+    >
+      <span className="block text-sm font-medium text-ink">{title}</span>
+      {hint && <span className="mt-0.5 block text-xs text-muted">{hint}</span>}
+    </button>
+  )
+}
 
-export function ClarifyDialog({ task, onClose }: ClarifyDialogProps) {
-  const [mode, setMode] = useState<Mode>('next')
-  const [contexts, setContexts] = useState('')
-  const [projectId, setProjectId] = useState('')
-  const [projectName, setProjectName] = useState('')
-  const [waitingOn, setWaitingOn] = useState('')
-  const [deferUntil, setDeferUntil] = useState('')
-  const [dueDate, setDueDate] = useState('')
+/** The book's processing flowchart, one question at a time. */
+export function ClarifyDialog({ item, onClose }: { item: Item; onClose: () => void }) {
+  const [history, setHistory] = useState<Step[]>(['actionable'])
+  const step = history[history.length - 1]
+  const go = (next: Step) => setHistory((h) => [...h, next])
+  const back = () => setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h))
 
   const projects = useGtdStore((s) => s.projects)
-  const clarifyToNext = useGtdStore((s) => s.clarifyToNext)
-  const clarifyToWaiting = useGtdStore((s) => s.clarifyToWaiting)
-  const clarifyToSomeday = useGtdStore((s) => s.clarifyToSomeday)
-  const clarifyToProject = useGtdStore((s) => s.clarifyToProject)
-  const completeTask = useGtdStore((s) => s.completeTask)
-  const deleteTask = useGtdStore((s) => s.deleteTask)
+  const fileItem = useGtdStore((s) => s.fileItem)
+  const completeItem = useGtdStore((s) => s.completeItem)
+  const deleteItem = useGtdStore((s) => s.deleteItem)
+  const createProject = useGtdStore((s) => s.createProject)
 
-  const submit = () => {
-    const parsedContexts = contexts
-      .split(',')
-      .map((c) => c.trim())
-      .filter(Boolean)
-      .map((c) => (c.startsWith('@') ? c : `@${c}`))
+  const [tickler, setTickler] = useState('')
+  const [notes, setNotes] = useState(item.notes ?? '')
+  const [projectName, setProjectName] = useState(item.title)
+  const [outcome, setOutcome] = useState('')
+  const [projectId, setProjectId] = useState('')
 
-    if (mode === 'next') {
-      clarifyToNext(task.id, parsedContexts, projectId || undefined, {
-        deferUntil: fromDateInput(deferUntil),
-        dueDate: fromDateInput(dueDate),
-      })
-    } else if (mode === 'project') {
-      if (!projectName.trim()) return
-      clarifyToProject(task.id, projectName.trim())
-    } else if (mode === 'waiting') {
-      if (!waitingOn.trim()) return
-      clarifyToWaiting(task.id, waitingOn.trim())
-    } else if (mode === 'someday') {
-      clarifyToSomeday(task.id)
-    }
+  const done = (fn: () => void) => {
+    fn()
     onClose()
   }
+  const activeProjects = projects.filter((p) => p.status === 'active')
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4">
-      <div className="w-full max-w-md rounded-xl border border-hairline bg-surface p-6 shadow-[0_2px_24px_rgba(0,0,0,0.04)]">
-        <h3 className="font-serif text-lg italic text-ink">Clarify: {task.title}</h3>
+    <Modal onClose={onClose}>
+      <div className="flex items-start justify-between gap-4">
+        <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Clarify</p>
+        <Button variant="ghost" onClick={onClose} aria-label="Close">
+          ✕
+        </Button>
+      </div>
+      <p className="mt-1 text-base text-ink">{item.title}</p>
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          {(
-            [
-              ['next', 'Next Action'],
-              ['project', 'New Project'],
-              ['waiting', 'Waiting For'],
-              ['someday', 'Someday/Maybe'],
-            ] as [Mode, string][]
-          ).map(([m, label]) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                mode === m
-                  ? 'border-ink bg-ink text-canvas'
-                  : 'border-hairline text-muted hover:border-ink hover:text-ink'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="mt-6 space-y-3">
+        {step === 'actionable' && (
+          <>
+            <Question>Is it actionable?</Question>
+            <Choice title="Yes" hint="There is something to do about it" onClick={() => go('project?')} />
+            <Choice title="No" hint="Nothing to do right now" onClick={() => go('not-actionable')} />
+          </>
+        )}
 
-        <div className="mt-5 space-y-3">
-          {mode === 'next' && (
-            <>
-              <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-                Contexts (comma separated, e.g. home, calls)
-                <input
-                  type="text"
-                  value={contexts}
-                  onChange={(e) => setContexts(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+        {step === 'not-actionable' && (
+          <>
+            <Question>Then what is it?</Question>
+            <Choice title="Trash" hint="Not needed" onClick={() => done(() => deleteItem(item.id))} />
+            <Choice
+              title="Someday/Maybe"
+              hint="Might want to act on it later — incubate it"
+              onClick={() => go('someday')}
+            />
+            <Choice
+              title="Reference"
+              hint="Useful information, no action needed"
+              onClick={() => go('reference')}
+            />
+          </>
+        )}
+
+        {step === 'someday' && (
+          <>
+            <Question>Want a reminder on a day?</Question>
+            <label className={labelClass}>
+              Tickler date (optional)
+              <input
+                type="date"
+                value={tickler}
+                onChange={(e) => setTickler(e.target.value)}
+                className={`mt-1 ${inputClass}`}
+              />
+            </label>
+            <p className="text-xs leading-relaxed text-muted">
+              On that day it comes back to your Inbox to decide again. Without a date, you’ll see
+              it in every Weekly Review.
+            </p>
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                onClick={() =>
+                  done(() =>
+                    fileItem(item.id, {
+                      title: item.title,
+                      status: 'someday',
+                      ticklerDate: fromDateInput(tickler),
+                    }),
+                  )
+                }
+              >
+                Incubate
+              </Button>
+            </div>
+          </>
+        )}
+
+        {step === 'reference' && (
+          <>
+            <Question>Anything worth noting with it?</Question>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Notes, links, numbers…"
+              className={inputClass}
+            />
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                onClick={() =>
+                  done(() =>
+                    fileItem(item.id, {
+                      title: item.title,
+                      status: 'reference',
+                      notes: notes.trim() || undefined,
+                    }),
+                  )
+                }
+              >
+                File as reference
+              </Button>
+            </div>
+          </>
+        )}
+
+        {step === 'project?' && (
+          <>
+            <Question>Does it take more than one action to finish?</Question>
+            <Choice
+              title="Yes — it’s a project"
+              hint="Define the outcome and the very next action"
+              onClick={() => go('project')}
+            />
+            <Choice title="No — one action does it" onClick={() => go('two-minutes')} />
+          </>
+        )}
+
+        {step === 'project' && (
+          <>
+            <label className={labelClass}>
+              Project
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                className={`mt-1 ${inputClass}`}
+              />
+            </label>
+            <label className={labelClass}>
+              What does “done” look like?
+              <input
+                type="text"
+                value={outcome}
+                onChange={(e) => setOutcome(e.target.value)}
+                placeholder="e.g. New website live and announced"
+                className={`mt-1 ${inputClass}`}
+              />
+            </label>
+            <div className="border-t border-hairline pt-4">
+              <Question>What’s the very next action?</Question>
+              <div className="mt-3">
+                <NextStepForm
+                  submitLabel="Create project"
+                  blocked={!projectName.trim()}
+                  onSubmit={(firstAction) =>
+                    done(() =>
+                      createProject({
+                        name: projectName.trim(),
+                        outcome: outcome.trim() || undefined,
+                        firstAction,
+                        fromItemId: item.id,
+                      }),
+                    )
+                  }
                 />
-              </label>
-              <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-                Project (optional)
+              </div>
+            </div>
+          </>
+        )}
+
+        {step === 'two-minutes' && (
+          <>
+            <Question>Can you do it in less than two minutes?</Question>
+            <Choice
+              title="Yes — do it now"
+              hint="Do it, then tap Done"
+              onClick={() => done(() => completeItem(item.id))}
+            />
+            <Choice title="No" hint="Delegate it or defer it" onClick={() => go('next')} />
+          </>
+        )}
+
+        {step === 'next' && (
+          <>
+            <Question>What’s the next action?</Question>
+            {activeProjects.length > 0 && (
+              <label className={labelClass}>
+                Part of a project? (optional)
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                  className={`mt-1 ${inputClass}`}
                 >
-                  <option value="">None</option>
-                  {projects.map((p) => (
+                  <option value="">No project</option>
+                  {activeProjects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
                     </option>
                   ))}
                 </select>
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-                  Defer until
-                  <input
-                    type="date"
-                    value={deferUntil}
-                    onChange={(e) => setDeferUntil(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
-                  />
-                </label>
-                <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-                  Due date
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
-                  />
-                </label>
-              </div>
-              <p className="text-xs leading-relaxed text-muted">
-                Both optional. Set a due date only for a real deadline.
-              </p>
-            </>
-          )}
-
-          {mode === 'project' && (
-            <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-              Project name
-              <input
-                type="text"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
-                placeholder={task.title}
-              />
-            </label>
-          )}
-
-          {mode === 'waiting' && (
-            <label className="block text-xs font-medium uppercase tracking-wide text-muted">
-              Waiting on whom?
-              <input
-                type="text"
-                value={waitingOn}
-                onChange={(e) => setWaitingOn(e.target.value)}
-                className="mt-1 w-full rounded-md border border-hairline bg-canvas px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
-              />
-            </label>
-          )}
-
-          {mode === 'someday' && (
-            <p className="text-sm text-muted">
-              This will move to Someday/Maybe for future review.
-            </p>
-          )}
-        </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                completeTask(task.id)
-                onClose()
-              }}
-              className="text-xs font-medium text-muted hover:text-ink"
-            >
-              Mark done
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                deleteTask(task.id)
-                onClose()
-              }}
-              className="text-xs font-medium text-pale-red-ink hover:opacity-70"
-            >
-              Delete
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={submit}
-              className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-canvas transition-[background-color,transform] hover:bg-neutral-700 active:scale-[0.98]"
-            >
-              Save
-            </button>
-          </div>
-        </div>
+            )}
+            <NextStepForm
+              initialTitle={item.title}
+              projectId={projectId || undefined}
+              onSubmit={(fields) => done(() => fileItem(item.id, fields))}
+            />
+          </>
+        )}
       </div>
-    </div>
+
+      {history.length > 1 && (
+        <div className="mt-4 border-t border-hairline pt-3">
+          <Button variant="ghost" onClick={back}>
+            ← Back
+          </Button>
+        </div>
+      )}
+    </Modal>
   )
 }
