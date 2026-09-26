@@ -1,92 +1,60 @@
 import { useMemo, useState } from 'react'
+import { ItemRow } from '../components/ItemRow'
+import { Empty, Page, Pills, SectionTitle } from '../components/ui'
+import { visibleNextActions } from '../domain/gtd'
 import { useGtdStore } from '../store/useGtdStore'
-import { TaskItem } from '../components/TaskItem'
-import { startOfDay } from '../utils/date'
+
+const NO_CONTEXT = '(no context)'
 
 export function NextActions() {
-  const allTasks = useGtdStore((s) => s.tasks)
+  const items = useGtdStore((s) => s.items)
   const projects = useGtdStore((s) => s.projects)
-  const [filter, setFilter] = useState<string>('')
-  const today = startOfDay()
+  const [filter, setFilter] = useState('all')
 
-  const nextTasks = useMemo(() => allTasks.filter((t) => t.status === 'next'), [allTasks])
+  // One list per context, as in the book: pick the list for where you are right now.
+  const groups = useMemo(() => {
+    const map = new Map<string, typeof items>()
+    for (const item of visibleNextActions({ items, projects }).sort((a, b) => a.createdAt - b.createdAt)) {
+      const key = item.context ?? NO_CONTEXT
+      map.set(key, [...(map.get(key) ?? []), item])
+    }
+    return [...map.entries()].sort(([a], [b]) =>
+      a === NO_CONTEXT ? 1 : b === NO_CONTEXT ? -1 : a.localeCompare(b),
+    )
+  }, [items, projects])
 
-  // A deferred task is not actionable yet, so it stays out of the list entirely.
-  const available = useMemo(
-    () => nextTasks.filter((t) => t.deferUntil === undefined || t.deferUntil <= today),
-    [nextTasks, today],
-  )
-  const deferredCount = nextTasks.length - available.length
-
-  const allContexts = useMemo(
-    () => Array.from(new Set(available.flatMap((t) => t.contexts))).sort(),
-    [available],
-  )
-
-  const visible = useMemo(() => {
-    const byContext = filter ? available.filter((t) => t.contexts.includes(filter)) : available
-    // Soonest deadline first; undated tasks keep their existing order behind them.
-    return [...byContext].sort((a, b) => {
-      if (a.dueDate !== undefined && b.dueDate !== undefined) return a.dueDate - b.dueDate
-      if (a.dueDate !== undefined) return -1
-      if (b.dueDate !== undefined) return 1
-      return 0
-    })
-  }, [available, filter])
-
-  const projectName = (id?: string) => projects.find((p) => p.id === id)?.name
+  const shown = filter === 'all' ? groups : groups.filter(([c]) => c === filter)
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-16">
-      <h2 className="font-serif text-3xl italic tracking-tight text-ink">Next Actions</h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        Everything you could physically do right now, one context at a time.
-      </p>
-
-      {allContexts.length > 0 && (
-        <div className="mt-6 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setFilter('')}
-            className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide transition-colors ${
-              filter === ''
-                ? 'border-ink bg-ink text-canvas'
-                : 'border-hairline text-muted hover:border-ink hover:text-ink'
-            }`}
-          >
-            All
-          </button>
-          {allContexts.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setFilter(c)}
-              className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide transition-colors ${
-                filter === c
-                  ? 'border-ink bg-ink text-canvas'
-                  : 'border-hairline text-muted hover:border-ink hover:text-ink'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+    <Page
+      title="Next Actions"
+      subtitle="Choose by context first, then time available, energy, and priority — in that order."
+    >
+      {groups.length > 1 && (
+        <div className="mb-6">
+          <Pills
+            options={[
+              { value: 'all', label: 'All' },
+              ...groups.map(([c, list]) => ({ value: c, label: `${c} ${list.length}` })),
+            ]}
+            value={shown.length ? filter : 'all'}
+            onChange={setFilter}
+          />
         </div>
       )}
 
-      <ul className="mt-8">
-        {visible.length === 0 && (
-          <p className="py-12 text-center text-sm text-muted">No next actions here.</p>
-        )}
-        {visible.map((task) => (
-          <TaskItem key={task.id} task={task} projectName={projectName(task.projectId)} />
-        ))}
-      </ul>
+      {shown.length === 0 && <Empty>No next actions. Process your Inbox or review your Projects.</Empty>}
 
-      {deferredCount > 0 && (
-        <p className="mt-6 border-t border-hairline pt-4 font-mono text-[11px] uppercase tracking-wide text-muted">
-          {deferredCount} deferred to a later date
-        </p>
-      )}
-    </div>
+      {shown.map(([context, list]) => (
+        <section key={context}>
+          <SectionTitle>{context}</SectionTitle>
+          <ul>
+            {list.map((item) => (
+              <ItemRow key={item.id} item={item} showContext={false} />
+            ))}
+          </ul>
+        </section>
+      ))}
+    </Page>
   )
 }
