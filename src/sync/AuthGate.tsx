@@ -1,7 +1,7 @@
 import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User } from 'firebase/auth'
 import { useEffect, useState, type ReactNode } from 'react'
 import { startSync } from './cloud'
-import { auth, configured, googleProvider } from './firebase'
+import { auth, googleProvider } from './firebase'
 
 /** Sign-in is required (ADR 0001): the app only renders once we know whose Cloud copy to mirror. */
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -19,9 +19,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen items-center justify-center bg-canvas p-4 text-ink">
       <div className="w-full max-w-xs border border-rule bg-surface p-6 text-center">
         <h1 className="text-sm font-semibold uppercase tracking-[0.2em]">GTD</h1>
-        {!configured ? (
-          <p className="mt-4 text-xs text-pale-red-ink">Firebase config is missing (src/sync/firebase.ts).</p>
-        ) : user === undefined ? (
+        {user === undefined ? (
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Loading…</p>
         ) : (
           <button
