@@ -13,13 +13,13 @@ export function StalledProjectCard({ project }: { project: Project }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <li className="rounded-xl border border-hairline bg-pale-red/40 p-4">
+    <li className="border-[1.5px] border-dashed border-pale-red-ink p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <Link to={`/projects/${project.id}`} className="text-sm font-medium text-ink hover:underline">
             {project.name}
           </Link>
-          <p className="font-mono text-[10px] uppercase tracking-wide text-pale-red-ink">
+          <p className="-rotate-1 font-hand text-sm text-pale-red-ink">
             stalled — nothing in motion
           </p>
         </div>

@@ -63,7 +63,7 @@ export function Calendar() {
       action={<Button onClick={() => setAdding((a) => !a)}>{adding ? 'Close' : '+ Add'}</Button>}
     >
       {adding && (
-        <div className="mb-8 rounded-xl border border-hairline bg-surface p-4">
+        <div className="mb-8 border border-rule bg-surface p-4">
           <NextStepForm
             kinds={['calendar']}
             autoFocus
@@ -77,7 +77,7 @@ export function Calendar() {
       )}
 
       {missed.length > 0 && (
-        <section className="mb-8 rounded-xl border border-hairline bg-pale-red/40 px-4 pt-3">
+        <section className="mb-8 border-[1.5px] border-dashed border-pale-red-ink px-4 pt-3">
           <SectionTitle tone="warn">Passed without being done — decide each one</SectionTitle>
           <p className="text-xs text-muted">Tick if it happened, move it to a new day, or ↺ re-clarify it.</p>
           <ul>

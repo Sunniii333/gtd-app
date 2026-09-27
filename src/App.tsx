@@ -34,7 +34,7 @@ function App() {
     <div className="min-h-screen bg-canvas text-ink md:flex">
       <Sidebar />
       <MobileHeader />
-      <main className="min-w-0 flex-1">
+      <main className="paper min-h-screen min-w-0 flex-1 pb-36 md:border-l md:border-rule md:pb-0">
         <Routes>
           <Route path="/" element={<Inbox />} />
           <Route path="/calendar" element={<Calendar />} />

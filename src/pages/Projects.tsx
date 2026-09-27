@@ -12,7 +12,7 @@ function NewProjectForm({ onDone }: { onDone: () => void }) {
   const [outcome, setOutcome] = useState('')
 
   return (
-    <div className="mb-8 space-y-3 rounded-xl border border-hairline bg-surface p-4">
+    <div className="mb-8 space-y-3 border border-rule bg-surface p-4">
       <label className={labelClass}>
         Project
         <input autoFocus value={name} onChange={(e) => setName(e.target.value)} className={`mt-1 ${inputClass}`} />
