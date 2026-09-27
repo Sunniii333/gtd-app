@@ -3,12 +3,19 @@ import { parseBackup } from '../domain/gtd'
 import { useGtdStore } from '../store/useGtdStore'
 import { downloadBackup } from '../utils/backup'
 import { startOfDay } from '../utils/date'
+import { isUnsynced } from '../sync/cloud'
+
+/** Quiet note while this Device has changes the Cloud copy hasn't got; nothing when all is synced. */
+export function SyncNote({ className = '' }: { className?: string }) {
+  const status = useGtdStore((s) => s.syncStatus)
+  if (!isUnsynced(status)) return null
+  return <span className={`text-muted ${className}`}>○ {status === 'offline' ? 'offline' : 'not synced yet'}</span>
+}
 
 export function DataControls() {
   const fileRef = useRef<HTMLInputElement>(null)
   const exportData = useGtdStore((s) => s.exportData)
   const importData = useGtdStore((s) => s.importData)
-  const syncStatus = useGtdStore((s) => s.syncStatus)
   const [error, setError] = useState<string | null>(null)
 
   const handleFile = async (file: File) => {
@@ -30,9 +37,7 @@ export function DataControls() {
     <div className="mt-8 border-t border-dashed border-hairline pt-4">
       <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
         Backup
-        {syncStatus && syncStatus !== 'synced' && (
-          <span className="ml-2 text-pale-red-ink">● {syncStatus === 'offline' ? 'offline' : 'not synced yet'}</span>
-        )}
+        <SyncNote className="ml-2" />
       </p>
       <div className="mt-2 flex gap-3">
         <button type="button" onClick={() => downloadBackup(exportData())} className="border border-hairline px-2 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">

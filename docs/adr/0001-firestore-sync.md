@@ -11,4 +11,5 @@
 
 - Export ยังคงไว้เป็น backup; Import กลายเป็น "แทนที่ Cloud copy ทั้งหมด" หลังยืนยัน
 - Device แรกที่ล็อกอินเจอ Cloud copy ว่าง จะอัปโหลดข้อมูลในเครื่องขึ้นไปเป็นข้อมูลตั้งต้น; Device ถัดไปถูกแทนที่ด้วย Cloud copy
+- ล็อกอินผ่านโดเมนของแอปเอง (vercel.json proxy `/__/auth` ไป Firebase) เพราะแอปที่ติดตั้งบน iOS ใช้ popup และ third-party storage ไม่ได้
 - ผูกกับ Firebase: ถ้าจะย้ายต้องเขียนชั้น sync ใหม่ แต่ Export JSON ยังใช้ย้ายข้อมูลได้

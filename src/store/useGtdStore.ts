@@ -1,22 +1,21 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GtdData, Item, Project } from '../types'
+import type { GtdData, Item, Project, SyncStatus } from '../types'
 import * as gtd from '../domain/gtd'
 import { startOfDay } from '../utils/date'
 import { generateId } from '../utils/id'
-import type { SyncStatus } from '../sync/cloud'
 
 /** Fields a new item can start with. Status is required; the rest depends on the list. */
 export type NewItem = Pick<Item, 'title' | 'status'> &
   Partial<Pick<Item, 'notes' | 'context' | 'projectId' | 'date' | 'time' | 'waitingOn' | 'ticklerDate'>>
 
-type Persisted = Pick<GtdData, 'items' | 'projects'> & { lastReviewAt: number | undefined }
+export type Persisted = Pick<GtdData, 'items' | 'projects'> & { lastReviewAt: number | undefined }
 
 interface GtdState extends GtdData {
   /** Not persisted: the project whose "what's next?" question is on screen. */
   followUpProjectId?: string
   /** Not persisted: set by the sync layer. */
-  syncStatus?: SyncStatus
+  syncStatus: SyncStatus
 
   capture: (title: string) => void
   addItem: (fields: NewItem) => void
@@ -82,6 +81,7 @@ export const useGtdStore = create<GtdState>()(
       return {
         items: [],
         projects: [],
+        syncStatus: 'idle',
 
         capture: (title) => set((s) => ({ items: [makeItem({ title, status: 'inbox' }), ...s.items] })),
 

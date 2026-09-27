@@ -49,3 +49,6 @@ export interface GtdData {
   projects: Project[]
   lastReviewAt?: number
 }
+
+/** Whether this Device's changes have reached the Cloud copy. 'idle' until sync starts. */
+export type SyncStatus = 'idle' | 'offline' | 'pending' | 'synced'

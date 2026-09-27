@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGtdStore } from '../store/useGtdStore'
 import type { Item } from '../types'
 
+
 type Snap = { empty?: boolean; exists?: () => boolean; get?: () => unknown; docs?: { data: () => unknown }[]; metadata: { fromCache: boolean; hasPendingWrites: boolean }; docChanges?: () => unknown[] }
 const listeners = new Map<string, (s: Snap) => void>()
 const writes: string[] = []
@@ -11,6 +12,7 @@ vi.mock('firebase/firestore', () => ({
   doc: (parent: { path?: string } | object, ...segs: string[]) => ({ path: [(parent as { path?: string }).path, ...segs].filter(Boolean).join('/') }),
   collection: (parent: { path: string }, name: string) => ({ path: `${parent.path}/${name}` }),
   setDoc: (ref: { path: string }) => (writes.push(`set ${ref.path}`), Promise.resolve()),
+  deleteField: () => 'DELETE',
   deleteDoc: (ref: { path: string }) => (writes.push(`del ${ref.path}`), Promise.resolve()),
   onSnapshot: (ref: { path: string }, _opts: unknown, cb: (s: Snap) => void) => (listeners.set(ref.path, cb), () => {}),
 }))
@@ -40,35 +42,49 @@ beforeEach(() => {
   useGtdStore.setState({ items: [], projects: [], lastReviewAt: undefined })
 })
 
+const cached = { fromCache: true, hasPendingWrites: false }
+const userDoc = (lastReviewAt?: number): Snap => ({ exists: () => true, get: () => lastReviewAt, metadata: server })
+
 describe('startSync', () => {
-  it('seeds an empty Cloud copy from the local data', () => {
-    useGtdStore.setState({ items: [item('a')] })
+  it('seeds an empty Cloud copy from all local data', () => {
+    useGtdStore.setState({ items: [item('a')], projects: [], lastReviewAt: 3 })
     stop = startSync('u')
-    listeners.get('users/u/items')!(emptyCol)
-    expect(writes).toEqual(['set users/u/items/a'])
+    listeners.get('users/u')!(noUser)
+    expect(writes).toEqual(['set users/u/items/a', 'set users/u'])
   })
 
-  it('waits for the server when the cache is empty', () => {
+  it('does not seed from an empty cache', () => {
     useGtdStore.setState({ items: [item('a')] })
     stop = startSync('u')
-    listeners.get('users/u/items')!({ ...emptyCol, metadata: { fromCache: true, hasPendingWrites: false } })
+    listeners.get('users/u')!({ ...noUser, metadata: cached })
     expect(writes).toEqual([])
   })
 
-  it('replaces local data with the cloud, without echoing it back', () => {
-    useGtdStore.setState({ items: [item('local')] })
+  it('takes the whole Cloud copy once seeded, even an empty collection, without echoing', () => {
+    useGtdStore.setState({ items: [item('local')], projects: [{ id: 'p', name: 'p', status: 'active', createdAt: 1 }] })
     stop = startSync('u')
     listeners.get('users/u/items')!(col([item('remote')]))
+    listeners.get('users/u/projects')!(emptyCol)
+    expect(useGtdStore.getState().items.map((i) => i.id)).toEqual(['local'])
+    listeners.get('users/u')!(userDoc())
     expect(useGtdStore.getState().items.map((i) => i.id)).toEqual(['remote'])
+    expect(useGtdStore.getState().projects).toEqual([])
     expect(writes).toEqual([])
   })
 
-  it('pushes local edits and deletes once ready', () => {
+  it('pushes local edits, deletes and review changes once ready', () => {
     stop = startSync('u')
     listeners.get('users/u/items')!(col([item('a'), item('b')]))
-    listeners.get('users/u')!(noUser)
+    listeners.get('users/u/projects')!(emptyCol)
+    listeners.get('users/u')!(userDoc(1))
     const [a] = useGtdStore.getState().items
     useGtdStore.setState({ items: [{ ...a, title: 'new' }], lastReviewAt: 5 })
     expect(writes).toEqual(['set users/u/items/a', 'del users/u/items/b', 'set users/u'])
+  })
+
+  it('reports offline and pending writes', () => {
+    stop = startSync('u')
+    listeners.get('users/u/items')!(col([], { fromCache: false, hasPendingWrites: true }))
+    expect(useGtdStore.getState().syncStatus).toBe('pending')
   })
 })

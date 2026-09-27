@@ -4,7 +4,7 @@ import { stalledProjects, visibleNextActions } from '../domain/gtd'
 import { useGtdStore } from '../store/useGtdStore'
 import { daysBetween, formatLastReview, startOfDay } from '../utils/date'
 import { CaptureButton } from './CaptureButton'
-import { DataControls } from './DataControls'
+import { DataControls, SyncNote } from './DataControls'
 
 interface NavItem {
   to: string
@@ -127,8 +127,7 @@ export function MobileHeader() {
   const primary = items.slice(0, PRIMARY)
   const more = items.slice(PRIMARY)
   const moreActive = more.some((i) => pathname.startsWith(i.to)) || pathname === '/review'
-  const unsynced = useGtdStore((s) => s.syncStatus !== undefined && s.syncStatus !== 'synced')
-  const moreAlert = reviewDue || unsynced || more.some((i) => i.alert)
+  const moreAlert = reviewDue || more.some((i) => i.alert)
 
   const tabClass = (isActive: boolean) =>
     `relative flex flex-1 flex-col items-center justify-center gap-0.5 border-t-[1.5px] py-2 font-mono text-[10px] uppercase tracking-[0.12em] ${
@@ -137,6 +136,7 @@ export function MobileHeader() {
 
   return (
     <div className="md:hidden">
+      <SyncNote className="fixed right-3 top-[calc(0.5rem+env(safe-area-inset-top))] z-40 font-mono text-[10px] uppercase tracking-[0.12em]" />
       <CaptureButton className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 z-40 px-5 py-3.5" />
 
       {moreOpen && (

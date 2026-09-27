@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signInWithPopup, type User } from 'firebase/auth'
+import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User } from 'firebase/auth'
 import { useEffect, useState, type ReactNode } from 'react'
 import { startSync } from './cloud'
 import { auth, configured, googleProvider } from './firebase'
@@ -8,7 +8,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => onAuthStateChanged(auth, setUser), [])
+  useEffect(() => {
+    getRedirectResult(auth).catch((e: Error) => setError(e.message))
+    return onAuthStateChanged(auth, setUser)
+  }, [])
   useEffect(() => (user ? startSync(user.uid) : undefined), [user])
 
   if (user) return children
@@ -23,7 +26,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
         ) : (
           <button
             type="button"
-            onClick={() => signInWithPopup(auth, googleProvider).catch((e: Error) => setError(e.message))}
+            onClick={() => {
+              // An installed app has no popups to speak of; a browser tab keeps its state with a popup.
+              const standalone = matchMedia('(display-mode: standalone)').matches
+              const signIn = standalone ? signInWithRedirect : signInWithPopup
+              signIn(auth, googleProvider).catch((e: Error) => setError(e.message))
+            }}
             className="mt-4 w-full border border-rule px-3 py-2 text-xs uppercase tracking-[0.1em] hover:bg-canvas"
           >
             Sign in with Google
