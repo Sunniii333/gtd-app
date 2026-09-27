@@ -8,7 +8,7 @@ import { Button, Modal, inputClass, labelClass } from './ui'
 type Step = 'actionable' | 'not-actionable' | 'someday' | 'reference' | 'project?' | 'project' | 'two-minutes' | 'next'
 
 function Question({ children }: { children: string }) {
-  return <p className="font-serif text-xl italic text-ink">{children}</p>
+  return <p className="text-base font-semibold uppercase tracking-[0.08em] text-ink">{children}</p>
 }
 
 function Choice({ title, hint, onClick }: { title: string; hint?: string; onClick: () => void }) {

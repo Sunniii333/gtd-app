@@ -278,7 +278,7 @@ export function WeeklyReview() {
   if (finished) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8 sm:py-14">
-        <h2 className="font-serif text-3xl italic tracking-tight text-ink">Review complete</h2>
+        <h2 className="text-xl font-semibold uppercase tracking-[0.14em] text-ink underline decoration-1 underline-offset-[6px] sm:text-2xl">Review complete</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           Clear, current, and creative. Your lists can be trusted again for the week ahead.
         </p>
@@ -310,7 +310,7 @@ export function WeeklyReview() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-8 sm:py-14">
-      <h2 className="font-serif text-3xl italic tracking-tight text-ink">Weekly Review</h2>
+      <h2 className="text-xl font-semibold uppercase tracking-[0.14em] text-ink underline decoration-1 underline-offset-[6px] sm:text-2xl">Weekly Review</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         The habit that keeps the whole system trustworthy. Once a week, step by step.
       </p>
@@ -334,7 +334,7 @@ export function WeeklyReview() {
                     type="button"
                     onClick={() => setIndex(i)}
                     aria-label={s.title}
-                    className={`h-1 flex-1 rounded-full ${i <= index ? 'bg-ink' : 'bg-hairline'}`}
+                    className={`h-1 flex-1 rounded-none ${i <= index ? 'bg-ink' : 'bg-hairline'}`}
                   />
                 ))}
               </div>
@@ -343,11 +343,11 @@ export function WeeklyReview() {
         })}
       </div>
 
-      <div className="mt-6 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+      <div className="mt-6 border border-rule bg-surface p-5 sm:p-6">
         <p className="font-mono text-[11px] uppercase tracking-wide text-muted">
           {index + 1} / {steps.length}
         </p>
-        <h3 className="mt-1 font-serif text-xl italic text-ink">{step.title}</h3>
+        <h3 className="mt-1 text-base font-semibold uppercase tracking-[0.08em] text-ink">{step.title}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted">{step.hint}</p>
         <div className="mt-5">{step.body}</div>
       </div>

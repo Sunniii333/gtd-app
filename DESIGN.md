@@ -88,3 +88,17 @@ Project { id, name, outcome?, status: 'active' | 'someday' | 'done', createdAt, 
 
 - `date` ใช้เฉพาะ `calendar` · `ticklerDate` ใช้เฉพาะ `someday` · วันที่ทุกตัวเป็น epoch ms ต้นวันตามเวลาท้องถิ่น
 - logic ล้วนอยู่ใน `src/domain/gtd.ts` (มี test) — store กับ UI เรียกใช้ ไม่ทำ logic ซ้ำ
+
+## Paper UI (หน้าตา)
+
+ตกลงกันเมื่อ 27/9/2026 — แอปหน้าตาเหมือน "แฟ้มเอกสารการบิน" (Apollo checklist) ผสมใบเสร็จ/ตั๋ว
+redesign นี้เปลี่ยนแค่หน้าตาและโครงหน้า **ไม่แตะ logic** (`src/domain`, `src/store` เหมือนเดิม test ผ่านครบ)
+
+| เรื่อง | ตัดสินใจ |
+|---|---|
+| แกนสไตล์ | Apollo checklist: งานมีเลขลำดับ `01 02 03` (CSS counter บน `.step`), หัวข้อกลุ่มเป็นกล่องคั่นเส้น, หัว/ท้ายหน้าเป็นแถบ metadata แบบใบเสร็จ (`ACT-03 · DATE 27/09/26`, `END OF SHEET`) |
+| ฟอนต์ | IBM Plex Mono (ละติน/ตัวเลข) → ตัวไทย fallback ไป IBM Plex Sans Thai · Mali = "ลายมือปากกาแดง" ใช้เฉพาะคำเตือนและคำถาม "What’s the next action?" · self-host ด้วย `@fontsource` (ใช้ offline ได้) |
+| สี | กระดาษครีม + หมึกดำ + แดงปากกาเฉพาะสิ่งที่ต้องตัดสินใจ (Inbox ค้าง, stalled, ปฏิทินเลยวัน, review เลยกำหนด) · dark mode = กระดาษคาร์บอน · ไม่มีมุมโค้ง ไม่มี italic |
+| มือถือ | แท็บกระดาษด้านล่าง `INBOX · CAL · NEXT · PROJ · MORE` พร้อมตัวเลข; MORE = Waiting For, Someday/Maybe, Reference, Weekly Review, Backup |
+| Desktop | Sidebar = แท็บดัชนีของ binder |
+| Capture | ปุ่ม **＋ CAPTURE** เด่นชัดทุกหน้า (มือถือ: ลอยเหนือแท็บ ระยะนิ้วโป้ง · desktop: บนสุดของ sidebar) → popup ช่องใหญ่ focus ทันที, Enter บันทึกแล้วพิมพ์ต่อได้เลย · ช่อง capture แบบ inline เหลือเฉพาะในขั้น mind sweep ของ Weekly Review |

@@ -1,34 +1,51 @@
 @import "tailwindcss";
 
+/*
+ * Paper UI — the app is a flight-data file: cream paper, black typewriter ink,
+ * one red pen for anything that needs a decision. See DESIGN.md › Paper UI.
+ * Plex Mono has no Thai glyphs, so Thai text falls through to Plex Sans Thai.
+ */
 @theme {
-  --font-sans: "Manrope", "Helvetica Neue", sans-serif;
-  --font-serif: "Newsreader", "Playfair Display", serif;
-  --font-mono: "JetBrains Mono", "SF Mono", monospace;
+  --font-sans: "IBM Plex Mono", "IBM Plex Sans Thai", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans Thai", ui-monospace, monospace;
+  --font-serif: "IBM Plex Mono", "IBM Plex Sans Thai", ui-monospace, monospace;
+  --font-hand: "Mali", "IBM Plex Sans Thai", cursive;
 
-  --color-canvas: #fbfbfa;
-  --color-surface: #ffffff;
-  --color-ink: #111111;
-  --color-muted: #787774;
-  --color-hairline: #eaeaea;
+  --color-canvas: #f3efe4;
+  --color-surface: #fbf9f3;
+  --color-ink: #1b1a17;
+  --color-muted: #6e6a60;
+  --color-hairline: #d3ccbc;
+  --color-rule: #1b1a17;
 
-  --color-pale-red: #fdebec;
-  --color-pale-red-ink: #9f2f2d;
-  --color-pale-yellow: #fbf3db;
-  --color-pale-yellow-ink: #956400;
+  /* "pale-red" is the red pen: warnings, overdue, stalled. */
+  --color-pale-red: #f6dcd6;
+  --color-pale-red-ink: #c0302a;
+  --color-pale-yellow: #f1e6c4;
+  --color-pale-yellow-ink: #7a5a00;
+
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
+    /* Carbon copy: dark sheet, cream ink. */
     color-scheme: dark;
-    --color-canvas: #111111;
-    --color-surface: #1a1a19;
-    --color-ink: #f2f1ed;
-    --color-muted: #9a9995;
-    --color-hairline: #2c2c2a;
+    --color-canvas: #16181c;
+    --color-surface: #1d2025;
+    --color-ink: #ece6d6;
+    --color-muted: #9b978c;
+    --color-hairline: #363a42;
+    --color-rule: #ece6d6;
 
-    --color-pale-red: rgba(159, 47, 45, 0.18);
-    --color-pale-red-ink: #f0918f;
-    --color-pale-yellow: rgba(149, 100, 0, 0.18);
+    --color-pale-red: rgba(255, 107, 94, 0.14);
+    --color-pale-red-ink: #ff7b6e;
+    --color-pale-yellow: rgba(224, 179, 77, 0.16);
     --color-pale-yellow-ink: #e0b34d;
   }
 }
@@ -38,4 +55,79 @@ body {
   font-family: var(--font-sans);
   color: var(--color-ink);
   background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Typewriter text is never italic. */
+em,
+i,
+.italic {
+  font-style: normal;
+}
+
+/* Every list of items reads like a numbered checklist: 01, 02, 03 … */
+ul:has(> .step) {
+  counter-reset: step;
+}
+.step {
+  counter-increment: step;
+}
+.step::before {
+  content: counter(step, decimal-leading-zero);
+  flex: none;
+  width: 1.75rem;
+  padding-top: 0.1rem;
+  font-size: 11px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Square ink checkbox, ticked like a pen mark. */
+input[type="checkbox"] {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  border: 1.5px solid var(--color-rule);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+input[type="checkbox"]::after {
+  content: "✓";
+  font-size: 0.8rem;
+  line-height: 1;
+  color: var(--color-ink);
+  transform: scale(0);
+  transition: transform 120ms ease-out;
+}
+input[type="checkbox"]:checked::after {
+  transform: scale(1);
+}
+input[type="checkbox"]:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Paper grain: a very faint ruled dot grid. */
+.paper {
+  background-color: var(--color-surface);
+  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 7%, transparent) 0.6px, transparent 0.7px);
+  background-size: 14px 14px;
+}
+
+.perforation {
+  background-image: radial-gradient(circle, var(--color-canvas) 3.5px, transparent 4px);
+  background-size: 14px 10px;
+  background-position: center;
+  background-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

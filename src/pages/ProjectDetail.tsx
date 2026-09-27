@@ -82,7 +82,7 @@ export function ProjectDetail() {
         {project.status === 'active' && (
           <>
             {stalled && (
-              <div className="mt-6 rounded-xl border border-hairline bg-pale-red/40 p-4 text-sm text-pale-red-ink">
+              <div className="mt-6 border-[1.5px] border-dashed border-pale-red-ink p-4 text-sm text-pale-red-ink">
                 Nothing is in motion. What’s the next action?
               </div>
             )}
@@ -92,7 +92,7 @@ export function ProjectDetail() {
                 <ItemRow key={item.id} item={item} showProject={false} />
               ))}
             </ul>
-            <div className="mt-4 rounded-xl border border-hairline bg-surface p-4">
+            <div className="mt-4 border border-rule bg-surface p-4">
               <NextStepForm projectId={project.id} submitLabel="Add action" onSubmit={addItem} autoFocus={stalled} />
             </div>
           </>

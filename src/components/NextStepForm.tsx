@@ -111,7 +111,7 @@ export function NextStepForm({
                 key={c}
                 type="button"
                 onClick={() => setContext(context === c ? '' : c)}
-                className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] tracking-wide transition-colors ${
+                className={`rounded-none border px-2.5 py-0.5 font-mono text-[11px] tracking-wide transition-colors ${
                   normalizeContext(context) === c
                     ? 'border-ink bg-ink text-canvas'
                     : 'border-hairline text-muted hover:border-ink hover:text-ink'
@@ -125,7 +125,7 @@ export function NextStepForm({
               value={contexts.includes(normalizeContext(context) ?? '') ? '' : context}
               onChange={(e) => setContext(e.target.value)}
               placeholder="@other"
-              className="w-24 rounded-full border border-hairline bg-canvas px-2.5 py-0.5 font-mono text-[11px] text-ink focus:border-ink focus:outline-none"
+              className="w-24 rounded-none border border-hairline bg-canvas px-2.5 py-0.5 font-mono text-[11px] text-ink focus:border-ink focus:outline-none"
             />
           </div>
         </div>

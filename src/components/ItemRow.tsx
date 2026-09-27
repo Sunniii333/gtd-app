@@ -25,7 +25,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
   const done = item.status === 'done'
 
   return (
-    <li className="group flex items-start gap-3 border-b border-hairline py-3.5 last:border-0">
+    <li className="step group flex items-start gap-3 border-b border-dashed border-hairline py-3.5 last:border-0">
       {isOpen(item) || done ? (
         <input
           type="checkbox"
@@ -33,10 +33,10 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
           disabled={done}
           onChange={() => completeItem(item.id)}
           aria-label={`Complete ${item.title}`}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-ink"
+          className="mt-0.5 shrink-0"
         />
       ) : (
-        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-hairline" aria-hidden />
+        <span className="mt-0.5 h-[1.05rem] w-[1.05rem] shrink-0 border border-dashed border-hairline" aria-hidden />
       )}
       <div className="min-w-0 flex-1">
         <p className={`text-sm ${done ? 'text-muted line-through' : 'text-ink'}`}>
@@ -56,7 +56,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
             <span className={chipClass}>{item.context}</span>
           )}
           {item.status === 'waiting' && (
-            <span className="rounded-full bg-pale-yellow px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-pale-yellow-ink">
+            <span className="rounded-none bg-pale-yellow border border-pale-yellow-ink/40 px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.08em] text-pale-yellow-ink">
               {item.waitingOn}
               {item.waitingSince !== undefined && ` · ${formatAge(item.waitingSince)}`}
             </span>
@@ -77,7 +77,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
             onClick={() => reconsider(item.id)}
             title="Send back to the Inbox to clarify again"
             aria-label="Clarify again"
-            className="rounded px-1.5 text-sm text-muted opacity-60 hover:text-ink group-hover:opacity-100"
+            className="px-2 py-1 text-sm text-muted opacity-60 hover:text-ink group-hover:opacity-100"
           >
             ↺
           </button>
@@ -86,7 +86,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
           type="button"
           onClick={() => deleteItem(item.id)}
           aria-label="Delete"
-          className="rounded px-1.5 text-sm text-muted opacity-60 hover:text-pale-red-ink group-hover:opacity-100"
+          className="px-2 py-1 text-sm text-muted opacity-60 hover:text-pale-red-ink group-hover:opacity-100"
         >
           ×
         </button>

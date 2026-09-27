@@ -46,9 +46,9 @@ export function Inbox() {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center justify-between gap-3 border-b border-hairline py-3.5 last:border-0"
+              className="step flex items-center justify-between gap-3 border-b border-dashed border-hairline py-3.5 last:border-0"
             >
-              <span className="text-sm text-ink">{item.title}</span>
+              <span className="min-w-0 flex-1 text-sm text-ink">{item.title}</span>
               <Button className="shrink-0 text-xs" onClick={() => setClarifyingId(item.id)}>
                 Clarify
               </Button>
