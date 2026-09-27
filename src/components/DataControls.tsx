@@ -8,6 +8,7 @@ export function DataControls() {
   const fileRef = useRef<HTMLInputElement>(null)
   const exportData = useGtdStore((s) => s.exportData)
   const importData = useGtdStore((s) => s.importData)
+  const syncStatus = useGtdStore((s) => s.syncStatus)
   const [error, setError] = useState<string | null>(null)
 
   const handleFile = async (file: File) => {
@@ -15,7 +16,7 @@ export function DataControls() {
     try {
       const backup = parseBackup(await file.text(), startOfDay())
       const confirmed = window.confirm(
-        `Replace all current data with this backup?\n\n` +
+        `Replace all data on every device with this backup?\n\n` +
           `${backup.items.length} items, ${backup.projects.length} projects.\n` +
           `This cannot be undone.`,
       )
@@ -27,7 +28,12 @@ export function DataControls() {
 
   return (
     <div className="mt-8 border-t border-dashed border-hairline pt-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">Backup</p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+        Backup
+        {syncStatus && syncStatus !== 'synced' && (
+          <span className="ml-2 text-pale-red-ink">● {syncStatus === 'offline' ? 'offline' : 'not synced yet'}</span>
+        )}
+      </p>
       <div className="mt-2 flex gap-3">
         <button type="button" onClick={() => downloadBackup(exportData())} className="border border-hairline px-2 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">
           Export

@@ -127,7 +127,8 @@ export function MobileHeader() {
   const primary = items.slice(0, PRIMARY)
   const more = items.slice(PRIMARY)
   const moreActive = more.some((i) => pathname.startsWith(i.to)) || pathname === '/review'
-  const moreAlert = reviewDue || more.some((i) => i.alert)
+  const unsynced = useGtdStore((s) => s.syncStatus !== undefined && s.syncStatus !== 'synced')
+  const moreAlert = reviewDue || unsynced || more.some((i) => i.alert)
 
   const tabClass = (isActive: boolean) =>
     `relative flex flex-1 flex-col items-center justify-center gap-0.5 border-t-[1.5px] py-2 font-mono text-[10px] uppercase tracking-[0.12em] ${

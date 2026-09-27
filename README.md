@@ -15,9 +15,10 @@ book and what was deliberately left out.
   flagged as stalled everywhere until they get one.
 - **Reflect** with the book's Weekly Review — Get clear, Get current, Get creative.
 
-React, TypeScript, Vite, Zustand (persisted to `localStorage`) and Tailwind. No
-backend — data stays in your browser; use Export/Import for backups. Data from
-the previous version is migrated automatically.
+React, TypeScript, Vite, Zustand and Tailwind. Data syncs across devices through
+Firebase Firestore (Google sign-in, works offline, installable as a PWA) — see
+[docs/adr/0001-firestore-sync.md](docs/adr/0001-firestore-sync.md) and
+[docs/firebase-setup.md](docs/firebase-setup.md). Export/Import stay as backups.
 
 ## Development
 
