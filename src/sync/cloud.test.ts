@@ -7,7 +7,9 @@ type Snap = { empty?: boolean; exists?: () => boolean; get?: () => unknown; docs
 const listeners = new Map<string, (s: Snap) => void>()
 const writes: string[] = []
 
-vi.mock('./firebase', () => ({ db: {} }))
+const signedOut: string[] = []
+vi.mock('./firebase', () => ({ db: {}, auth: {} }))
+vi.mock('firebase/auth', () => ({ signOut: () => (signedOut.push('out'), Promise.resolve()) }))
 vi.mock('firebase/firestore', () => ({
   doc: (parent: { path?: string } | object, ...segs: string[]) => ({ path: [(parent as { path?: string }).path, ...segs].filter(Boolean).join('/') }),
   collection: (parent: { path: string }, name: string) => ({ path: `${parent.path}/${name}` }),
@@ -20,7 +22,7 @@ vi.mock('firebase/firestore', () => ({
 vi.stubGlobal('window', new EventTarget())
 vi.stubGlobal('navigator', { onLine: true })
 
-const { startSync } = await import('./cloud')
+const { signOutDevice, startSync } = await import('./cloud')
 
 const item = (id: string): Item => ({ id, title: id, status: 'inbox', createdAt: 1, updatedAt: 1 })
 const server = { fromCache: false, hasPendingWrites: false }
@@ -86,5 +88,19 @@ describe('startSync', () => {
     stop = startSync('u')
     listeners.get('users/u/items')!(col([], { fromCache: false, hasPendingWrites: true }))
     expect(useGtdStore.getState().syncStatus).toBe('pending')
+  })
+})
+
+describe('signOutDevice', () => {
+  it("empties this Device's copy without touching the Cloud copy", async () => {
+    stop = startSync('u')
+    listeners.get('users/u/items')!(col([item('a')]))
+    listeners.get('users/u/projects')!(emptyCol)
+    listeners.get('users/u')!(userDoc(1))
+    await signOutDevice()
+    expect(useGtdStore.getState().items).toEqual([])
+    expect(useGtdStore.getState().lastReviewAt).toBeUndefined()
+    expect(writes).toEqual([])
+    expect(signedOut).toEqual(['out'])
   })
 })

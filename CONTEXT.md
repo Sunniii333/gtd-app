@@ -24,3 +24,17 @@ _Avoid_: backup, upload
 **Seed backup**:
 ไฟล์ Export ที่ใช้เป็นข้อมูลตั้งต้นของ Cloud copy ตอนเปิด Sync ครั้งแรก
 _Avoid_: migration file
+
+**Sign out**:
+การออกจากบัญชีบน Device หนึ่ง — ล้างสำเนาข้อมูลบน Device นั้นทิ้งทันที (Cloud copy ไม่ถูกแตะ) เพื่อไม่ให้บัญชีถัดไปที่ล็อกอินบนเครื่องนี้เอาข้อมูลเดิมไป Seed ลง Cloud copy ของตัวเอง
+_Avoid_: logout, reset
+
+### Settings
+
+**Device setting**:
+ค่าที่ผู้ใช้เลือกให้ Device หนึ่ง ๆ (ธีม ขนาดตัวอักษร ลดการเคลื่อนไหว) จำไว้บนเครื่องนั้นเท่านั้น ไม่ Sync และไม่อยู่ในไฟล์ Export — มือถือจะมืด คอมจะสว่างก็ได้
+_Avoid_: preference, config, user setting
+
+**Theme**:
+หน้ากระดาษที่ใช้แสดงผล — Paper (กระดาษครีม สว่าง) · Carbon (กระดาษคาร์บอน มืด) · System (ตามเครื่อง ค่าเริ่มต้น)
+_Avoid_: brightness (เว็บแอปคุมแสงหน้าจอจริงไม่ได้)

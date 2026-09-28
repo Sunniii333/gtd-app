@@ -32,7 +32,7 @@ export function CaptureBar({ placeholder = 'Capture anything on your mind…' }:
       />
       <button
         type="submit"
-        className="absolute right-0 top-0 bottom-0 border-l-[1.5px] border-rule bg-ink px-3 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-canvas"
+        className="absolute right-0 top-0 bottom-0 border-l-[1.5px] border-rule bg-ink px-3 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-canvas"
       >
         {flash ? '✓' : 'Log'}
       </button>

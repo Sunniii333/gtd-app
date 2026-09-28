@@ -38,7 +38,7 @@ function CaptureSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal onClose={onClose}>
-      <div className="flex items-center justify-between border-b border-rule pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+      <div className="flex items-center justify-between border-b border-rule pb-2 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-muted">
         <span className="text-ink">Capture → Inbox</span>
         <span>{log.length} logged</span>
       </div>

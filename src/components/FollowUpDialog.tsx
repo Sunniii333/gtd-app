@@ -28,7 +28,7 @@ export function FollowUpDialog() {
 
   return (
     <Modal>
-      <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Project · {project.name}</p>
+      <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted">Project · {project.name}</p>
       {justDone && <p className="mt-1 text-sm text-muted line-through">{justDone.title}</p>}
       <h3 className="mt-3 -rotate-1 font-hand text-2xl text-pale-red-ink">What’s the next action?</h3>
       {project.outcome && (
@@ -39,7 +39,7 @@ export function FollowUpDialog() {
 
       {open.length > 0 && (
         <div className="mt-5 border border-dashed border-rule p-3">
-          <p className="font-mono text-[10px] uppercase tracking-wide text-muted">Already in motion</p>
+          <p className="font-mono text-[0.625rem] uppercase tracking-wide text-muted">Already in motion</p>
           <ul className="mt-2 space-y-1.5">
             {open.map((i) => (
               <li key={i.id} className="flex flex-wrap items-center gap-2 text-sm text-ink">

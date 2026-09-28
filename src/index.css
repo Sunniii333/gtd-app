@@ -32,9 +32,12 @@
   --radius-2xl: 0;
 }
 
+/*
+ * Carbon copy: dark sheet, cream ink. Chosen in Settings (data-theme on <html>),
+ * or following the Device when no theme is chosen.
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* Carbon copy: dark sheet, cream ink. */
+  :root:not([data-theme="paper"]) {
     color-scheme: dark;
     --color-canvas: #16181c;
     --color-surface: #1d2025;
@@ -48,6 +51,23 @@
     --color-pale-yellow: rgba(224, 179, 77, 0.16);
     --color-pale-yellow-ink: #e0b34d;
   }
+}
+:root[data-theme="carbon"] {
+  color-scheme: dark;
+  --color-canvas: #16181c;
+  --color-surface: #1d2025;
+  --color-ink: #ece6d6;
+  --color-muted: #9b978c;
+  --color-hairline: #363a42;
+  --color-rule: #ece6d6;
+
+  --color-pale-red: rgba(255, 107, 94, 0.14);
+  --color-pale-red-ink: #ff7b6e;
+  --color-pale-yellow: rgba(224, 179, 77, 0.16);
+  --color-pale-yellow-ink: #e0b34d;
+}
+:root[data-theme="paper"] {
+  color-scheme: light;
 }
 
 body {
@@ -78,7 +98,7 @@ ul:has(> .step) {
   flex: none;
   width: 1.75rem;
   padding-top: 0.1rem;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -125,9 +145,14 @@ input[type="checkbox"]:disabled {
   background-repeat: repeat-x;
 }
 
+/* Stillness: the Device asks for it, or Settings › Reduce motion does. */
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
     animation: none !important;
   }
+}
+:root[data-reduce-motion] * {
+  transition: none !important;
+  animation: none !important;
 }

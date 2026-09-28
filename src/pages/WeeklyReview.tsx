@@ -135,7 +135,7 @@ export function WeeklyReview() {
                   item={i}
                   extra={
                     i.status === 'calendar' && (
-                      <span className="font-mono text-[10px] uppercase text-pale-red-ink">missed</span>
+                      <span className="font-mono text-[0.625rem] uppercase text-pale-red-ink">missed</span>
                     )
                   }
                 />
@@ -321,7 +321,7 @@ export function WeeklyReview() {
           return (
             <div key={phase}>
               <p
-                className={`font-mono text-[10px] uppercase tracking-wide ${
+                className={`font-mono text-[0.625rem] uppercase tracking-wide ${
                   step.phase === phase ? 'text-ink' : 'text-muted'
                 }`}
               >
@@ -344,7 +344,7 @@ export function WeeklyReview() {
       </div>
 
       <div className="mt-6 border border-rule bg-surface p-5 sm:p-6">
-        <p className="font-mono text-[11px] uppercase tracking-wide text-muted">
+        <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted">
           {index + 1} / {steps.length}
         </p>
         <h3 className="mt-1 text-base font-semibold uppercase tracking-[0.08em] text-ink">{step.title}</h3>
