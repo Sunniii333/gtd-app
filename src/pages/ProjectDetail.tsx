@@ -52,7 +52,7 @@ export function ProjectDetail() {
   return (
     <div>
       <div className="mx-auto max-w-2xl px-4 pt-6 sm:px-8">
-        <Link to="/projects" className="font-mono text-[11px] uppercase tracking-wide text-muted hover:text-ink">
+        <Link to="/projects" className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted hover:text-ink">
           ← Projects
         </Link>
       </div>
@@ -67,7 +67,7 @@ export function ProjectDetail() {
         }
       >
         <label className="block">
-          <span className="font-mono text-[11px] uppercase tracking-wide text-muted">Outcome — what “done” looks like</span>
+          <span className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted">Outcome — what “done” looks like</span>
           <textarea
             // Keyed so an import or edit elsewhere refreshes the field.
             key={project.outcome}

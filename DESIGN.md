@@ -99,6 +99,20 @@ redesign นี้เปลี่ยนแค่หน้าตาและโ�
 | แกนสไตล์ | Apollo checklist: งานมีเลขลำดับ `01 02 03` (CSS counter บน `.step`), หัวข้อกลุ่มเป็นกล่องคั่นเส้น, หัว/ท้ายหน้าเป็นแถบ metadata แบบใบเสร็จ (`ACT-03 · DATE 27/09/26`, `END OF SHEET`) |
 | ฟอนต์ | IBM Plex Mono (ละติน/ตัวเลข) → ตัวไทย fallback ไป IBM Plex Sans Thai · Mali = "ลายมือปากกาแดง" ใช้เฉพาะคำเตือนและคำถาม "What’s the next action?" · self-host ด้วย `@fontsource` (ใช้ offline ได้) |
 | สี | กระดาษครีม + หมึกดำ + แดงปากกาเฉพาะสิ่งที่ต้องตัดสินใจ (Inbox ค้าง, stalled, ปฏิทินเลยวัน, review เลยกำหนด) · dark mode = กระดาษคาร์บอน · ไม่มีมุมโค้ง ไม่มี italic |
-| มือถือ | แท็บกระดาษด้านล่าง `INBOX · CAL · NEXT · PROJ · MORE` พร้อมตัวเลข; MORE = Waiting For, Someday/Maybe, Reference, Weekly Review, Backup |
+| มือถือ | แท็บกระดาษด้านล่าง `INBOX · CAL · NEXT · PROJ · MORE` พร้อมตัวเลข; MORE = Waiting For, Someday/Maybe, Reference, Weekly Review, Settings |
 | Desktop | Sidebar = แท็บดัชนีของ binder |
 | Capture | ปุ่ม **＋ CAPTURE** เด่นชัดทุกหน้า (มือถือ: ลอยเหนือแท็บ ระยะนิ้วโป้ง · desktop: บนสุดของ sidebar) → popup ช่องใหญ่ focus ทันที, Enter บันทึกแล้วพิมพ์ต่อได้เลย · ช่อง capture แบบ inline เหลือเฉพาะในขั้น mind sweep ของ Weekly Review |
+
+## Settings
+
+ตกลงกันเมื่อ 28/9/2026 — หน้า `/settings` แยก (desktop: แท็บล่างสุดของ sidebar · มือถือ: ในเมนู MORE)
+ไม่อยู่ในหนังสือ แต่เป็นโครงสร้างพื้นฐานแบบเดียวกับ Export/Import
+
+| หมวด | มีอะไร | ตัดสินใจ |
+|---|---|---|
+| Appearance | Theme: System / Paper / Carbon · Text size: S / M / L · Reduce motion | เป็น **Device setting** — localStorage key `gtd-settings` ไม่แตะ Firestore; "ความสว่าง" = Theme เพราะเว็บคุมแสงจอไม่ได้ |
+| Account | อีเมลที่ล็อกอิน · Sign out | Sign out ล้างสำเนาบนเครื่อง (ดู CONTEXT.md › Sign out) ถ้ามีการแก้ที่ยังไม่ขึ้น Cloud copy ต้องเตือนก่อน |
+| Backup | Export / Import | ย้ายจากท้าย sidebar/MORE มาไว้ที่เดียว |
+
+- ขนาดตัวอักษรปรับที่ `font-size` ของ `<html>` ทุกขนาดตัวอักษรในแอปจึงต้องเป็น `rem` (ห้าม `text-[..px]`)
+- logic ล้วนของ settings อยู่ใน `src/settings/settings.ts` (มี test)

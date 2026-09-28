@@ -52,7 +52,7 @@ export function ClarifyDialog({ item, onClose }: { item: Item; onClose: () => vo
   return (
     <Modal onClose={onClose}>
       <div className="flex items-start justify-between gap-4">
-        <p className="font-mono text-[11px] uppercase tracking-wide text-muted">Clarify</p>
+        <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted">Clarify</p>
         <Button variant="ghost" onClick={onClose} aria-label="Close">
           ✕
         </Button>

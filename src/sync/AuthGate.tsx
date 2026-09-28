@@ -20,7 +20,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <div className="w-full max-w-xs border border-rule bg-surface p-6 text-center">
         <h1 className="text-sm font-semibold uppercase tracking-[0.2em]">GTD</h1>
         {user === undefined ? (
-          <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Loading…</p>
+          <p className="mt-4 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-muted">Loading…</p>
         ) : (
           <button
             type="button"

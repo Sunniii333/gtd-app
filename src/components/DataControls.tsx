@@ -34,16 +34,12 @@ export function DataControls() {
   }
 
   return (
-    <div className="mt-8 border-t border-dashed border-hairline pt-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
-        Backup
-        <SyncNote className="ml-2" />
-      </p>
-      <div className="mt-2 flex gap-3">
-        <button type="button" onClick={() => downloadBackup(exportData())} className="border border-hairline px-2 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">
+    <div className="mt-3">
+      <div className="flex gap-3">
+        <button type="button" onClick={() => downloadBackup(exportData())} className="border border-hairline px-2 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">
           Export
         </button>
-        <button type="button" onClick={() => fileRef.current?.click()} className="border border-hairline px-2 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">
+        <button type="button" onClick={() => fileRef.current?.click()} className="border border-hairline px-2 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-muted hover:border-rule hover:text-ink">
           Import
         </button>
       </div>

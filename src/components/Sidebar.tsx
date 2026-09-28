@@ -4,7 +4,7 @@ import { stalledProjects, visibleNextActions } from '../domain/gtd'
 import { useGtdStore } from '../store/useGtdStore'
 import { daysBetween, formatLastReview, startOfDay } from '../utils/date'
 import { CaptureButton } from './CaptureButton'
-import { DataControls, SyncNote } from './DataControls'
+import { SyncNote } from './DataControls'
 
 interface NavItem {
   to: string
@@ -60,7 +60,7 @@ const PRIMARY = 4
 
 function Badges({ item }: { item: NavItem }) {
   return (
-    <span className="flex items-center gap-1.5 font-mono text-[11px] tabular-nums">
+    <span className="flex items-center gap-1.5 font-mono text-[0.6875rem] tabular-nums">
       {!!item.alert && <span className="font-semibold text-pale-red-ink">●{item.alert}</span>}
       {!!item.count && <span className="text-muted">{String(item.count).padStart(2, '0')}</span>}
     </span>
@@ -71,7 +71,7 @@ function ReviewNote({ text, due }: { text: string; due: boolean }) {
   return due ? (
     <span className="-rotate-1 font-hand text-sm normal-case tracking-normal text-pale-red-ink">{text} — due!</span>
   ) : (
-    <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">{text}</span>
+    <span className="font-mono text-[0.625rem] uppercase tracking-[0.1em] text-muted">{text}</span>
   )
 }
 
@@ -89,7 +89,7 @@ export function Sidebar() {
     <nav className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto py-8 pl-4 md:flex">
       <div className="mr-4 border border-rule px-3 py-2">
         <h1 className="text-sm font-semibold uppercase tracking-[0.2em] text-ink">GTD</h1>
-        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">Flight data file</p>
+        <p className="font-mono text-[0.625rem] uppercase tracking-[0.12em] text-muted">Flight data file</p>
       </div>
       <CaptureButton className="mr-4 mt-4 w-[calc(100%-1rem)] py-3" />
       <ul className="mt-8">
@@ -110,8 +110,11 @@ export function Sidebar() {
           <ReviewNote text={reviewText} due={reviewDue} />
         </p>
       </div>
-      <div className="mr-4">
-        <DataControls />
+      <div className="mt-auto pt-8">
+        <NavLink to="/settings" className={tabClass}>
+          <span>Settings</span>
+          <SyncNote className="font-mono text-[0.625rem] uppercase tracking-[0.1em]" />
+        </NavLink>
       </div>
     </nav>
   )
@@ -126,17 +129,17 @@ export function MobileHeader() {
 
   const primary = items.slice(0, PRIMARY)
   const more = items.slice(PRIMARY)
-  const moreActive = more.some((i) => pathname.startsWith(i.to)) || pathname === '/review'
+  const moreActive = more.some((i) => pathname.startsWith(i.to)) || pathname === '/review' || pathname === '/settings'
   const moreAlert = reviewDue || more.some((i) => i.alert)
 
   const tabClass = (isActive: boolean) =>
-    `relative flex flex-1 flex-col items-center justify-center gap-0.5 border-t-[1.5px] py-2 font-mono text-[10px] uppercase tracking-[0.12em] ${
+    `relative flex flex-1 flex-col items-center justify-center gap-0.5 border-t-[1.5px] py-2 font-mono text-[0.625rem] uppercase tracking-[0.12em] ${
       isActive ? 'border-rule bg-surface font-semibold text-ink' : 'border-transparent text-muted'
     }`
 
   return (
     <div className="md:hidden">
-      <SyncNote className="fixed right-3 top-[calc(0.5rem+env(safe-area-inset-top))] z-40 font-mono text-[10px] uppercase tracking-[0.12em]" />
+      <SyncNote className="fixed right-3 top-[calc(0.5rem+env(safe-area-inset-top))] z-40 font-mono text-[0.625rem] uppercase tracking-[0.12em]" />
       <CaptureButton className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 z-40 px-5 py-3.5" />
 
       {moreOpen && (
@@ -145,11 +148,15 @@ export function MobileHeader() {
             className="paper absolute inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] border-t-[1.5px] border-rule px-4 pb-4 pt-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="border-b border-rule pb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+            <p className="border-b border-rule pb-2 font-mono text-[0.625rem] uppercase tracking-[0.14em] text-muted">
               More sections
             </p>
             <ul>
-              {[...more, { to: '/review', label: 'Weekly Review', short: 'Review' } as NavItem].map((item) => (
+              {[
+                ...more,
+                { to: '/review', label: 'Weekly Review', short: 'Review' } as NavItem,
+                { to: '/settings', label: 'Settings', short: 'Set' } as NavItem,
+              ].map((item) => (
                 <li key={item.to} className="step flex items-center border-b border-dashed border-hairline">
                   <NavLink
                     to={item.to}
@@ -161,7 +168,6 @@ export function MobileHeader() {
                 </li>
               ))}
             </ul>
-            <DataControls />
           </div>
         </div>
       )}
@@ -177,7 +183,7 @@ export function MobileHeader() {
         ))}
         <button type="button" onClick={() => setMoreOpen((o) => !o)} className={tabClass(moreActive || moreOpen)}>
           <span>More</span>
-          <span className="h-3.5 font-mono text-[11px] font-semibold text-pale-red-ink">{moreAlert ? '●' : ''}</span>
+          <span className="h-3.5 font-mono text-[0.6875rem] font-semibold text-pale-red-ink">{moreAlert ? '●' : ''}</span>
         </button>
       </nav>
     </div>

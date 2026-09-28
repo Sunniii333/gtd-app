@@ -8,9 +8,11 @@ import { NextActions } from './pages/NextActions'
 import { ProjectDetail } from './pages/ProjectDetail'
 import { Projects } from './pages/Projects'
 import { Reference } from './pages/Reference'
+import { Settings } from './pages/Settings'
 import { SomedayMaybe } from './pages/SomedayMaybe'
 import { WaitingFor } from './pages/WaitingFor'
 import { WeeklyReview } from './pages/WeeklyReview'
+import { useApplySettings } from './settings/useSettings'
 import { useGtdStore } from './store/useGtdStore'
 
 /** Empties today's tickler into the Inbox on load, when the app regains focus, and hourly. */
@@ -30,6 +32,7 @@ function useTickler() {
 
 function App() {
   useTickler()
+  useApplySettings()
   return (
     <div className="min-h-screen bg-canvas text-ink md:flex">
       <Sidebar />
@@ -45,6 +48,7 @@ function App() {
           <Route path="/someday" element={<SomedayMaybe />} />
           <Route path="/reference" element={<Reference />} />
           <Route path="/review" element={<WeeklyReview />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Inbox />} />
         </Routes>
       </main>

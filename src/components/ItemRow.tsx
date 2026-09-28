@@ -56,7 +56,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
             <span className={chipClass}>{item.context}</span>
           )}
           {item.status === 'waiting' && (
-            <span className="rounded-none bg-pale-yellow border border-pale-yellow-ink/40 px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.08em] text-pale-yellow-ink">
+            <span className="rounded-none bg-pale-yellow border border-pale-yellow-ink/40 px-1.5 py-px font-mono text-[0.625rem] uppercase tracking-[0.08em] text-pale-yellow-ink">
               {item.waitingOn}
               {item.waitingSince !== undefined && ` · ${formatAge(item.waitingSince)}`}
             </span>

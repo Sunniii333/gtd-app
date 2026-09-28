@@ -1,13 +1,27 @@
+import { signOut } from 'firebase/auth'
 import { collection, deleteDoc, deleteField, doc, onSnapshot, setDoc, type QuerySnapshot } from 'firebase/firestore'
 import { useGtdStore, type Persisted } from '../store/useGtdStore'
 import type { Item, Project, SyncStatus } from '../types'
-import { db } from './firebase'
+import { auth, db } from './firebase'
 import { diffRecords } from './diff'
 
 type Collection = 'items' | 'projects'
 const COLLECTIONS: Collection[] = ['items', 'projects']
 
 export const isUnsynced = (s: SyncStatus) => s === 'offline' || s === 'pending'
+
+/** The running sync, so Sign out can stop it before emptying the store. */
+let stopCurrent: (() => void) | undefined
+
+/**
+ * Sign out (CONTEXT.md): empties this Device's copy so the next account to sign in here can't seed it
+ * into its own Cloud copy. Sync stops first, so emptying the store is never pushed up as deletes.
+ */
+export async function signOutDevice() {
+  stopCurrent?.()
+  useGtdStore.setState({ items: [], projects: [], lastReviewAt: undefined, followUpProjectId: undefined })
+  await signOut(auth)
+}
 
 /**
  * Mirrors the store to users/{uid} in Firestore: local changes go up record by record,
@@ -98,7 +112,11 @@ export function startSync(uid: string): () => void {
   window.addEventListener('offline', publishStatus)
   publishStatus()
 
-  return () => {
+  let stopped = false
+  const stop = () => {
+    if (stopped) return
+    stopped = true
+    if (stopCurrent === stop) stopCurrent = undefined
     unsubStore()
     unsubCols.forEach((u) => u())
     unsubUser()
@@ -106,4 +124,6 @@ export function startSync(uid: string): () => void {
     window.removeEventListener('offline', publishStatus)
     useGtdStore.setState({ syncStatus: 'idle' })
   }
+  stopCurrent = stop
+  return stop
 }

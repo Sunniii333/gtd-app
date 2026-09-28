@@ -4,10 +4,10 @@ import { useLocation } from 'react-router-dom'
 export const inputClass =
   'w-full border border-rule bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:outline-2 focus:outline-offset-1 focus:outline-rule'
 
-export const labelClass = 'block text-[11px] font-medium uppercase tracking-[0.12em] text-muted'
+export const labelClass = 'block text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted'
 
 export const chipClass =
-  'border border-hairline px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.08em] text-muted'
+  'border border-hairline px-1.5 py-px font-mono text-[0.625rem] uppercase tracking-[0.08em] text-muted'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
@@ -16,8 +16,8 @@ const VARIANT: Record<Variant, string> = {
     'border border-rule bg-ink px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] text-canvas transition-transform active:translate-y-px disabled:opacity-40',
   secondary:
     'border border-rule bg-surface px-3 py-2 text-xs uppercase tracking-[0.1em] text-ink hover:bg-ink hover:text-canvas disabled:opacity-40',
-  ghost: 'px-2 py-1 text-[11px] uppercase tracking-[0.1em] text-muted underline-offset-4 hover:text-ink hover:underline',
-  danger: 'px-2 py-1 text-[11px] uppercase tracking-[0.1em] text-pale-red-ink hover:underline',
+  ghost: 'px-2 py-1 text-[0.6875rem] uppercase tracking-[0.1em] text-muted underline-offset-4 hover:text-ink hover:underline',
+  danger: 'px-2 py-1 text-[0.6875rem] uppercase tracking-[0.1em] text-pale-red-ink hover:underline',
 }
 
 export function Button({
@@ -38,6 +38,7 @@ const SHEETS: Record<string, string> = {
   someday: 'SM-06',
   reference: 'REF-07',
   review: 'WR-08',
+  settings: 'SET-09',
 }
 
 function sheetCode(pathname: string) {
@@ -53,7 +54,7 @@ export function SheetHeader({ title, action }: { title: string; action?: ReactNo
   const { pathname } = useLocation()
   return (
     <>
-      <div className="flex border-y border-rule font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+      <div className="flex border-y border-rule font-mono text-[0.625rem] uppercase tracking-[0.12em] text-muted">
         <span className="border-r border-rule px-2 py-1 text-ink">{sheetCode(pathname)}</span>
         <span className="flex-1 px-2 py-1">Getting Things Done</span>
         <span className="border-l border-rule px-2 py-1">Date {today()}</span>
@@ -84,7 +85,7 @@ export function Page({
       <SheetHeader title={title} action={action} />
       {subtitle && <p className="mt-3 text-xs leading-relaxed text-muted">{subtitle}</p>}
       <div className="mt-8">{children}</div>
-      <p className="mt-10 overflow-hidden whitespace-nowrap text-center font-mono text-[10px] tracking-[0.2em] text-hairline" aria-hidden>
+      <p className="mt-10 overflow-hidden whitespace-nowrap text-center font-mono text-[0.625rem] tracking-[0.2em] text-hairline" aria-hidden>
         ************ END OF SHEET ************
       </p>
     </div>
@@ -101,7 +102,7 @@ export function SectionTitle({ children, tone }: { children: ReactNode; tone?: '
         className={
           warn
             ? 'px-1 font-hand text-sm text-pale-red-ink'
-            : 'border border-rule px-2 py-0.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink'
+            : 'border border-rule px-2 py-0.5 font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-ink'
         }
       >
         {children}
@@ -114,7 +115,7 @@ export function SectionTitle({ children, tone }: { children: ReactNode; tone?: '
 export function Empty({ children }: { children: ReactNode }) {
   return (
     <div className="py-10 text-center">
-      <p className="font-mono text-[11px] tracking-[0.2em] text-muted">~~ NO ENTRIES ~~</p>
+      <p className="font-mono text-[0.6875rem] tracking-[0.2em] text-muted">~~ NO ENTRIES ~~</p>
       <p className="mt-2 text-xs text-muted">{children}</p>
     </div>
   )
@@ -137,7 +138,7 @@ export function Pills<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`border px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.08em] transition-colors ${
+          className={`border px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.08em] transition-colors ${
             value === o.value
               ? 'border-rule bg-ink text-canvas'
               : 'border-hairline text-muted hover:border-rule hover:text-ink'

@@ -89,7 +89,7 @@ export function Projects() {
                   <span className="block text-sm text-ink">{p.name}</span>
                   {p.outcome && <span className="block truncate text-xs text-muted">{p.outcome}</span>}
                 </span>
-                <span className="shrink-0 font-mono text-[11px] text-muted">{openCount(p.id)} open</span>
+                <span className="shrink-0 font-mono text-[0.6875rem] text-muted">{openCount(p.id)} open</span>
               </Link>
             </li>
           ))}
