@@ -1,0 +1,603 @@
+<title>ออฟฟิศป่วน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one phone-height desk — HUD, alert strip, in-tray of sticky notes, "where I am" work list, status chips. */
+:root{
+  --desk:#E3EBE5; --panel:#F8FBF8; --ink:#18243B; --muted:#56657B; --line:#C7D5CD;
+  --note:#FFE27A; --note2:#FFD1DC; --note3:#CDEBFF; --note-ink:#2E2500;
+  --accent:#2D5BE3; --stamp:#D5363F; --ok:#1C8A57; --warn:#B86E00; --shade:rgba(24,36,59,.14);
+  --scrim:rgba(20,28,44,.45);
+  --display:'Mitr','Sarabun',system-ui,sans-serif; --body:'Sarabun',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --desk:#111922; --panel:#19232F; --ink:#E6EDF6; --muted:#98A6BA; --line:#2B394B;
+  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --note-ink:#1F1800;
+  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4);
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --desk:#111922; --panel:#19232F; --ink:#E6EDF6; --muted:#98A6BA; --line:#2B394B;
+  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --note-ink:#1F1800;
+  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4);
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--desk);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px;padding-inline:16px;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#app{max-width:480px;margin:0 auto;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;align-items:center;box-shadow:0 4px 14px var(--shade)}
+.hud .day{font-family:var(--display);font-weight:500;font-size:16px}
+.hud .clock{font-family:var(--mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.hud .score{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.hud .pause{width:34px;height:34px;border-radius:10px;border:1px solid var(--line)}
+.stress{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.stress .bar{flex:1;height:8px;border-radius:99px;background:var(--desk);overflow:hidden;border:1px solid var(--line)}
+.stress .fill{height:100%;width:0;background:var(--ok);transition:width .3s,background .3s}
+.stress .face{font-size:18px;width:22px;text-align:center}
+.hud-r{display:flex;align-items:center;gap:10px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-size:14px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px}
+.sec-h b{color:var(--ink);font-weight:500}
+#alerts{display:flex;flex-direction:column;gap:8px}
+.alert{background:var(--panel);border:1.5px solid var(--stamp);border-radius:12px;padding:8px 10px;display:flex;gap:10px;align-items:center;animation:pop .25s ease-out}
+.alert.soft{border-color:var(--warn)}
+.alert .txt{flex:1;min-width:0;font-size:14px}
+.alert .timer{height:3px;background:var(--stamp);border-radius:2px;margin-top:4px;transition:width .1s linear}
+.alert.soft .timer{background:var(--warn)}
+.btn{background:var(--accent);color:var(--panel);font-family:var(--display);font-weight:500;border-radius:10px;padding:8px 14px;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.red{background:var(--stamp)}
+.btn.big{padding:13px 22px;font-size:17px;border-radius:14px}
+.tray{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.tray-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.note{position:relative;min-height:84px;border-radius:4px 4px 4px 14px;padding:10px 10px 8px;background:var(--note);color:var(--note-ink);
+  text-align:left;box-shadow:0 3px 0 rgba(0,0,0,.06),0 6px 12px var(--shade);display:flex;flex-direction:column;gap:4px;animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+.note.c2{background:var(--note2)} .note.c3{background:var(--note3)}
+.note .src{font-size:13px;opacity:.75;display:flex;justify-content:space-between}
+.note .t{font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.note.new::after{content:"ใหม่";position:absolute;top:-6px;right:-4px;background:var(--stamp);color:var(--panel);font-size:10px;padding:1px 6px;border-radius:99px;font-family:var(--display)}
+.slot{min-height:84px;border:1.5px dashed var(--line);border-radius:4px 4px 4px 14px}
+.tray.full{border-color:var(--stamp);box-shadow:0 0 0 3px color-mix(in srgb,var(--stamp) 25%,transparent)}
+.work{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.modes{display:flex;gap:6px;margin-bottom:10px;background:var(--desk);padding:4px;border-radius:12px}
+.mode{flex:1;padding:8px 4px;border-radius:9px;font-family:var(--display);font-size:14px;display:flex;justify-content:center;gap:6px;align-items:center}
+.mode.on{background:var(--panel);box-shadow:0 2px 6px var(--shade);color:var(--accent)}
+.mode .n{font-family:var(--mono);font-size:11px;background:var(--line);border-radius:99px;padding:0 6px;color:var(--ink)}
+.tasks{display:flex;flex-direction:column;gap:6px}
+.task{display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.task .tt{min-width:0;font-size:14px}
+.task .tag{font-size:11px;color:var(--accent);font-family:var(--display)}
+.task .dots{font-size:10px;letter-spacing:2px;color:var(--muted);align-self:center}
+.task .pbar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--desk);overflow:hidden}
+.task .pbar i{display:block;height:100%;width:0;background:var(--accent)}
+.task.doing{border-color:var(--accent)}
+.empty{color:var(--muted);font-size:13px;padding:10px 4px;text-align:center}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
+.chip b{font-family:var(--mono);font-size:16px;color:var(--ink)}
+.chip.hot{border-color:var(--stamp);color:var(--stamp);animation:pulse 1.2s infinite}
+.wrapbox{background:var(--panel);border:2px solid var(--accent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.wrapbox h3{margin:0;font-family:var(--display);font-weight:500;font-size:17px}
+.check{display:flex;gap:8px;align-items:center;font-size:14px}
+.check .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;flex:none}
+.check.done .box{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.check .pts{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted)}
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet-panel{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  max-height:86%;overflow:auto;animation:up .22s ease-out}
+.sheet-panel h4{margin:0 0 8px;font-family:var(--display);font-weight:500;font-size:16px}
+.bignote{background:var(--note);color:var(--note-ink);border-radius:4px 4px 4px 16px;padding:14px;margin-bottom:12px;box-shadow:0 6px 14px var(--shade)}
+.bignote.c2{background:var(--note2)} .bignote.c3{background:var(--note3)}
+.bignote .t{font-size:17px;font-weight:600;line-height:1.35}
+.bignote .meta{font-size:12px;opacity:.75;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.dests{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.dest{border:1px solid var(--line);border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:13px;background:var(--panel)}
+.dest .i{font-size:22px}
+.dest:active{transform:scale(.96);background:var(--desk)}
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px}
+.row .grow{flex:1;min-width:0}
+.row small{color:var(--muted)}
+.mood{height:6px;border-radius:3px;background:var(--desk);overflow:hidden;margin-top:4px}
+.mood i{display:block;height:100%}
+/* overlays */
+#block{position:fixed;inset:0;z-index:15;background:var(--scrim);display:grid;place-items:center;padding:16px}
+.blockcard{background:var(--panel);border-radius:18px;padding:18px;width:min(340px,100%);text-align:center;box-shadow:0 10px 30px var(--shade)}
+.blockcard .lab{font-family:var(--display);font-size:13px;color:var(--muted)}
+.blockcard .what{font-weight:600;margin:6px 0 12px}
+.blockcard .bar{height:10px;border-radius:5px;background:var(--desk);overflow:hidden}
+.blockcard .bar i{display:block;height:100%;background:var(--accent);width:0}
+.blockcard .hint{font-size:12px;color:var(--stamp);margin-top:10px;min-height:1em}
+#toasts{position:fixed;left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:40;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding-inline:16px}
+.toast{background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:99px;font-size:13px;max-width:100%;animation:toast 2.2s ease forwards;font-family:var(--display)}
+.toast.good{background:var(--ok)} .toast.bad{background:var(--stamp)} .toast.warn{background:var(--warn)}
+#screen{position:fixed;inset:0;z-index:30;background:var(--desk);overflow:auto;padding-inline:16px;
+  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px}
+.scr{max-width:460px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 40px;display:flex;flex-direction:column;gap:16px}
+.logo{font-family:var(--display);font-weight:600;font-size:clamp(44px,14vw,64px);line-height:1;letter-spacing:-.01em;margin:24px 0 0;text-wrap:balance}
+.logo span{display:inline-block;background:var(--note);color:var(--note-ink);padding:0 10px;transform:rotate(-2deg);border-radius:4px 4px 4px 14px;box-shadow:0 6px 14px var(--shade)}
+.sub{color:var(--muted);font-size:16px;max-width:34ch}
+.stack-notes{position:relative;height:150px;margin:6px 0}
+.stack-notes .note{position:absolute;width:150px;min-height:92px;animation:none}
+.bubble{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.who{display:flex;align-items:center;gap:10px;font-family:var(--display)}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--note3);display:grid;place-items:center;font-size:22px}
+.tip{display:flex;gap:10px;font-size:15px}
+.tip .i{font-size:20px;flex:none;width:26px;text-align:center}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.stars{font-size:38px;letter-spacing:6px;text-align:center}
+.stars .off{opacity:.2}
+.kv{display:flex;justify-content:space-between;font-size:15px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:0}
+.kv b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.days{display:flex;gap:6px;justify-content:center}
+.days span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--display);font-size:13px}
+.days span.done{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.days span.cur{border-color:var(--accent);color:var(--accent)}
+h2{font-family:var(--display);font-weight:500;font-size:26px;margin:0;text-wrap:balance}
+@keyframes drop{from{transform:translateY(-18px) rotate(-4deg);opacity:0}}
+@keyframes pop{from{transform:scale(.96);opacity:0}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@keyframes pulse{50%{opacity:.55}}
+@keyframes toast{0%{opacity:0;transform:translateY(-8px)}10%,80%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.shake{animation:shake .25s 2}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app" hidden>
+  <header class="hud">
+    <div class="day" id="hDay">วันจันทร์</div>
+    <div class="clock" id="hClock">09:00</div>
+    <div class="hud-r"><span class="score" id="hScore">0</span><button class="pause" data-a="pause" aria-label="พัก">☕</button></div>
+    <div class="stress"><span class="face" id="hFace">😌</span><span>ความเครียด</span><div class="bar"><div class="fill" id="hStress"></div></div></div>
+  </header>
+  <div id="alerts"></div>
+  <section class="tray" id="trayBox">
+    <div class="sec-h"><span><b>ถาดเข้า</b> · แตะแผ่นเพื่อจัดการ</span><span id="trayCount"></span></div>
+    <div class="tray-grid" id="tray"></div>
+  </section>
+  <section class="work">
+    <div class="modes" id="modes"></div>
+    <div class="tasks" id="list"></div>
+  </section>
+  <div class="chips" id="chips"></div>
+  <div id="wrap" hidden></div>
+</div>
+<div id="sheet" class="sheet" hidden data-a="closeSheet"><div class="sheet-panel" id="sheetBody"></div></div>
+<div id="block" hidden><div class="blockcard"><div class="lab" id="bLab">กำลังทำ</div><div class="what" id="bWhat"></div><div class="bar"><i id="bBar"></i></div><div class="hint" id="bHint"></div></div></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="screen"></div>
+
+<script>
+// ---------- content ----------
+const ROLES={it:{name:'พี่ต้น',dept:'ไอที',i:'🖥️'},acc:{name:'พี่แอน',dept:'บัญชี',i:'🧾'},des:{name:'พี่โบ๊ท',dept:'ดีไซน์',i:'🎨'}};
+const CTX={pc:{i:'💻',n:'โต๊ะคอม',list:'ลิสต์คอม'},phone:{i:'📞',n:'โทรศัพท์',list:'ลิสต์โทร'},walk:{i:'🚶',n:'เดินในออฟฟิศ',list:'ลิสต์เดิน'}};
+const P={
+  junk:['อีเมล: ยินดีด้วย! คุณได้รับ iPhone ฟรี','ใบปลิวพิซซ่าเปิดใหม่ ซื้อ 1 แถม 1','อีเมลขายคอร์ส "รวยใน 7 วัน"','แชทลูกโซ่: ส่งต่อ 10 คนแล้วจะโชคดี','แคตตาล็อกเก้าอี้ที่ไม่มีใครสั่ง','จดหมายข่าวร้านที่เคยซื้อครั้งเดียว','คูปองส่วนลดที่หมดอายุไปแล้ว','อีเมล: บัญชีคุณถูกระงับ คลิกด่วน!!'],
+  quick:['ตอบอีเมลฝ่ายขายว่า "ได้รับแล้วครับ"','กดยืนยันเข้ากลุ่มแชททีม','ส่งไฟล์ที่เพื่อนขอ (มีในเครื่องแล้ว)','อนุมัติวันลาของน้องในทีม','ตอบรับนัดกินข้าวเที่ยงกับทีม','กดไลก์โพสต์เปิดตัวสินค้าของบริษัท','ส่งเลขบัญชีให้ฝ่ายบุคคล'],
+  task_pc:[['ทำสไลด์สรุปยอดขายเดือนนี้',3],['เขียนสรุปประชุมเมื่อวาน',2],['อัปเดตตารางสต็อกสินค้า',2],['ตรวจคำผิดในโบรชัวร์ใหม่',2],['ร่างอีเมลเสนอราคาให้ลูกค้า',2],['จัดโฟลเดอร์ไฟล์โปรเจกต์ให้เป็นระเบียบ',3]],
+  task_phone:[['โทรจองห้องประชุมที่โรงแรม',2],['โทรเลื่อนนัดช่างแอร์',1],['โทรถามที่อยู่จัดส่งกับลูกค้า',1],['โทรคุยรายละเอียดกับซัพพลายเออร์',2]],
+  task_walk:[['เดินไปขอลายเซ็นผู้จัดการ',1],['ไปหยิบกระดาษ A4 ที่ห้องเก็บของ',1],['เอาเอกสารไปส่งฝ่ายบุคคล',1],['แวะคุยงานกับทีมชั้นล่าง',2]],
+  deleg:[['เครื่องพิมพ์ชั้น 3 กระดาษติดอีกแล้ว','it'],['Wi-Fi ห้องประชุมหลุดทุก 5 นาที','it'],['คอมเครื่องใหม่ยังไม่ได้ลงโปรแกรม','it'],['ใบเสร็จค่าแท็กซี่รอเบิกเงิน','acc'],['ลูกค้าขอใบกำกับภาษีฉบับใหม่','acc'],['เช็กยอดโอนที่ลูกค้าแจ้งมา','acc'],['ขอไฟล์โลโก้ขนาดใหญ่ไปทำป้าย','des'],['ปกรายงานประจำปีต้องออกแบบใหม่','des'],['แบนเนอร์หน้าเว็บต้องเปลี่ยนสี','des']],
+  info:[['รหัส Wi-Fi แขก: guest-2026','แขกมาถึงแล้ว ขอรหัส Wi-Fi หน่อย'],['เบอร์ช่างแอร์ประจำตึก','แอร์ห้องประชุมเสีย! ใครมีเบอร์ช่าง?'],['วิธีแก้ไฟแดงเครื่องถ่ายเอกสาร','เครื่องถ่ายเอกสารขึ้นไฟแดง ทำยังไงดี?'],['ขนาดโลโก้มาตรฐานของบริษัท','ฝ่ายดีไซน์ถามขนาดโลโก้ที่ถูกต้อง'],['รายชื่อผู้ติดต่อฝั่งลูกค้า','ต้องใช้เบอร์ผู้ติดต่อลูกค้าด่วน!'],['ระเบียบการเบิกค่าเดินทาง','น้องใหม่ถามว่าเบิกค่าแท็กซี่ยังไง'],['รหัสเข้าห้องเก็บของ: 4417','ห้องเก็บของล็อก ใครรู้รหัสบ้าง?']],
+  meeting:['ประชุมทีมประจำสัปดาห์','นัดคุยงานกับหัวหน้า','วิดีโอคอลกับลูกค้า','อบรมหนีไฟประจำปี','พรีเซนต์งานให้ผู้บริหาร'],
+  idea:['ไอเดีย: วางต้นไม้ทั่วออฟฟิศ','อยากลองเรียนภาษาญี่ปุ่นสักวัน','ไอเดีย: ปาร์ตี้ปีใหม่ธีมย้อนยุค','น่าจะมีมุมกาแฟดี ๆ สักมุม','ไอเดีย: ทำพอดแคสต์ของบริษัท','อยากจัดทริปทีมไปทะเล'],
+};
+const CLIENTS=[
+  {name:'ร้านกาแฟดอยหลวง',need:'อยากได้เมนูใหม่ทั้งร้าน',steps:[['โทรถามว่าอยากได้เมนูแบบไหน','phone',1],['ร่างเมนูใหม่ในคอม','pc',2],['เอาแบบไปให้ผู้จัดการเซ็นอนุมัติ','walk',1],['ส่งไฟล์เมนูให้ลูกค้า','pc',1]]},
+  {name:'คลินิกฟันยิ้มใส',need:'อยากได้ใบปลิวโปรโมชัน',steps:[['โทรเก็บรายละเอียดโปรโมชัน','phone',1],['เขียนข้อความในใบปลิว','pc',2],['เดินไปคุยกับฝ่ายพิมพ์','walk',1],['อีเมลตัวอย่างให้ลูกค้าตรวจ','pc',1]]},
+  {name:'โรงแรมริมโขง',need:'อยากจัดงานสัมมนาประจำปี',steps:[['โทรเช็กวันว่างห้องจัดเลี้ยง','phone',1],['ทำตารางกำหนดการในคอม','pc',2],['โทรยืนยันกับวิทยากร','phone',1],['เดินไปแจ้งทีมเรื่องวันงาน','walk',1]]},
+];
+const DAYS=[
+  {name:'จันทร์',len:110,spawn:5.4,unlock:['trash','now','pc'],kinds:{junk:3,quick:4,task_pc:4},
+   who:'พี่นุ่น · หัวหน้าทีม',hello:'ยินดีต้อนรับน้องใหม่! ทุกอย่างที่ส่งถึงเราจะลงถาดนี้ แตะแต่ละแผ่นแล้วตัดสินใจว่าจะทำอะไรกับมัน',
+   tips:[['🗑️','โฆษณา สแปม ของไร้สาระ ทิ้งได้เลย'],['⚡','เรื่องจิ๊บ ๆ ที่เสร็จในพริบตา ทำเลย'],['💻','งานที่ต้องนั่งทำนาน อย่าเพิ่งลงมือ ใส่ลิสต์ไว้ แล้วค่อยแตะทำทีหลัง'],['😬','ถาดรกเมื่อไหร่ หัวก็ตื้อ ความเครียดขึ้นเรื่อย ๆ']]},
+  {name:'อังคาร',len:120,spawn:5,unlock:['trash','now','pc','deleg','cab'],kinds:{junk:2,quick:3,task_pc:3,deleg:3,info:3},
+   who:'พี่นุ่น · หัวหน้าทีม',hello:'เมื่อวานรอดมาได้ เก่งมาก! วันนี้มีของใหม่สองอย่าง',
+   tips:[['🤝','งานที่ไม่ใช่ของเรา ส่งให้คนที่ถนัด พี่ต้นไอที พี่แอนบัญชี พี่โบ๊ทดีไซน์ แล้วคอยดูด้วยว่าเขาเงียบไปหรือเปล่า'],['🗄️','ข้อมูลที่ไม่ต้องทำอะไร แต่วันหนึ่งอาจต้องใช้ เก็บเข้าตู้ไว้'],['❓','พอมีคนมาถาม ถ้าเก็บไว้ในตู้ จะหาเจอทันที']]},
+  {name:'พุธ',len:130,spawn:4.7,unlock:['trash','now','pc','phone','walk','deleg','cab','cal'],kinds:{junk:2,quick:3,task_pc:2,task_phone:2,task_walk:2,deleg:2,info:2,meeting:1.6},
+   who:'พี่นุ่น · หัวหน้าทีม',hello:'วันนี้ต้องลุกจากโต๊ะบ้างแล้ว',
+   tips:[['📞','งานโทร งานคอม งานเดิน ทำได้เฉพาะตอนอยู่ที่นั่น ย้ายที่ทีเสียเวลาที ทำรวดเดียวให้คุ้ม'],['📅','นัดที่มีเวลาชัดเจน ลงปฏิทินไว้ ถึงเวลาแล้วมันจะเตือนเอง'],['⏰','นัดที่ไม่ได้ลงปฏิทิน… ลืมแน่นอน']]},
+  {name:'พฤหัส',len:140,spawn:4.6,unlock:['trash','now','pc','phone','walk','deleg','cab','cal','drawer','client'],kinds:{junk:2,quick:3,task_pc:2,task_phone:1.5,task_walk:1.5,deleg:2,info:2,meeting:1.4,idea:2},
+   clients:[[.12,0],[.45,1]],tickler:true,
+   who:'พี่นุ่น · หัวหน้าทีม',hello:'ลูกค้าใหญ่มาแล้ว! งานลูกค้ามีหลายขั้น ต้องดูแลกันยาว ๆ',
+   tips:[['📁','ลูกค้าใหม่ เปิดแฟ้มไว้ งานจะมาทีละขั้น ทำเสร็จหนึ่งขั้น ขั้นต่อไปจะตามมา'],['😠','ถ้าขั้นต่อไปค้างอยู่ในถาด ไม่มีใครลงมือ ลูกค้าจะหงุดหงิดขึ้นเรื่อย ๆ'],['🌙','ไอเดียดี ๆ ที่ยังไม่ต้องทำตอนนี้ เก็บไว้ในลิ้นชัก บางอันมีวันของมันเอง']]},
+  {name:'ศุกร์',len:140,spawn:4.3,unlock:['trash','now','pc','phone','walk','deleg','cab','cal','drawer','client'],kinds:{junk:2,quick:3,task_pc:2,task_phone:1.5,task_walk:1.5,deleg:2,info:2,meeting:1.4,idea:2},
+   clients:[[.1,2]],review:true,
+   who:'พี่นุ่น · หัวหน้าทีม',hello:'ศุกร์แล้ว! วันสุดท้ายของสัปดาห์แรก ตั้งใจอีกนิด',
+   tips:[['🌙','ก่อนกลับบ้านเย็นนี้ เปิดลิ้นชักดูไอเดียที่เก็บไว้ทั้งสัปดาห์ด้วยนะ'],['🧹','โต๊ะว่าง ใจก็ว่าง เคลียร์ให้หมดก่อนเสาร์อาทิตย์']]},
+];
+const DEST=[
+  ['trash','🗑️','ทิ้ง'],['now','⚡','ทำเลย'],['pc','💻','ลิสต์คอม'],['phone','📞','ลิสต์โทร'],['walk','🚶','ลิสต์เดิน'],
+  ['deleg','🤝','ส่งต่อ…'],['cal','📅','ลงปฏิทิน'],['cab','🗄️','เก็บเข้าตู้'],['drawer','🌙','ลิ้นชัก'],['client','📁','เปิดแฟ้ม']];
+const SRC={junk:['📧 อีเมล','📄 จดหมาย','💬 แชท'],quick:['📧 อีเมล','💬 แชท'],task:['📝 โน้ต','📧 อีเมล'],deleg:['💬 แชท','📝 โน้ต','📧 อีเมล'],
+  info:['📄 เอกสาร','📌 ประกาศ','📧 อีเมล'],meeting:['📧 อีเมล','💬 แชท'],idea:['📝 โน้ต','💬 แชท'],client:['📨 ลูกค้าใหม่'],step:['📁 แฟ้มลูกค้า']};
+const DOTS=n=>'●'.repeat(n)+'○'.repeat(Math.max(0,3-n));
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=m=>{m=Math.floor(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const $=id=>document.getElementById(id);
+
+// ---------- state ----------
+let S=null, snap=null, uid=1, dirty=true, openSheet=null;
+function fresh(){return{day:0,min:540,elapsed:0,phase:'title',score:0,stress:8,tray:[],lists:{pc:[],phone:[],walk:[]},waiting:[],calendar:[],cabinet:[],drawer:[],
+  clients:[],mode:'pc',job:null,block:null,alerts:[],sched:[],returns:[],spawnT:1.2,fired:[],paused:false,dayStart:0,potential:0,drawerSeen:false,week:[],used:{},uid:1}}
+const cfg=()=>DAYS[S.day];
+const has=u=>cfg().unlock.includes(u);
+const mps=()=>540/cfg().len;
+function save(){try{localStorage.setItem('office-chaos-v1',JSON.stringify(S))}catch(e){}}
+function load(){try{const j=localStorage.getItem('office-chaos-v1');return j?JSON.parse(j):null}catch(e){return null}}
+function id(){return S.uid++}
+
+// ---------- item factory ----------
+function pick(kind){
+  const pool=P[kind]; const used=S.used[kind]||(S.used[kind]=[]);
+  let choices=pool.map((_,i)=>i).filter(i=>!used.includes(i)); if(!choices.length){S.used[kind]=[];choices=pool.map((_,i)=>i)}
+  const i=rnd(choices); S.used[kind].push(i); return pool[i];
+}
+function make(kind){
+  const it={id:id(),color:rnd(['','','c2','c3'])};
+  if(kind==='junk'){Object.assign(it,{kind,title:pick('junk')})}
+  else if(kind==='quick'){Object.assign(it,{kind,title:pick('quick'),ctx:'pc',size:1})}
+  else if(kind.startsWith('task_')){const [t,s]=pick(kind);Object.assign(it,{kind:'task',title:t,ctx:kind.slice(5),size:s})}
+  else if(kind==='deleg'){const [t,r]=pick('deleg');Object.assign(it,{kind,title:t,role:r,ctx:'pc',size:4})}
+  else if(kind==='info'){const [t,q]=pick('info');Object.assign(it,{kind,title:t,q})
+    let d=S.day,m=S.min+80+Math.random()*90; if(m>1030){d++;m=570+Math.random()*120}
+    S.sched.push({type:'q',day:d,min:m,itemId:it.id,q})}
+  else if(kind==='meeting'){let t=Math.ceil((S.min+90+Math.random()*60)/30)*30; if(t>1020) return make('quick');
+    Object.assign(it,{kind,title:pick('meeting')+' · '+fmt(t),time:t}); S.sched.push({type:'meet',day:S.day,min:t,itemId:it.id})}
+  else if(kind==='idea'){Object.assign(it,{kind,title:pick('idea'),ctx:'pc',size:3})}
+  it.src=rnd(SRC[it.kind==='task'?'task':it.kind]); it.born=S.elapsed;
+  return it;
+}
+const VALUE={junk:3,quick:12,deleg:20,info:18,meeting:18,idea:3};
+function potentialOf(it){return it.kind==='task'?it.size*10+2:it.kind==='client'?133:(VALUE[it.kind]||0)}
+function addToTray(it,front){
+  if(S.tray.length>=8){S.stress+=6;S.score-=5;toast('ถาดล้น! เอกสารหล่นหายไปแผ่นหนึ่ง','bad');shake('trayBox');return}
+  front?S.tray.unshift(it):S.tray.push(it); dirty=true;
+}
+function spawnRandom(){
+  const k=cfg().kinds; const tot=Object.values(k).reduce((a,b)=>a+b,0); let r=Math.random()*tot, kind='quick';
+  for(const [n,w] of Object.entries(k)){if((r-=w)<=0){kind=n;break}}
+  const it=make(kind); S.potential+=potentialOf(it); addToTray(it);
+}
+function spawnClient(ci){
+  const c=CLIENTS[ci]; const it={id:id(),kind:'client',ci,title:`${c.name}: ${c.need}`,src:SRC.client[0],color:'c3'};
+  S.potential+=potentialOf(it); addToTray(it,true);
+}
+function stepItem(c){const [t,ctx,size]=c.steps[c.idx];return{id:id(),kind:'step',clientId:c.id,title:t,tag:c.name,ctx,size,src:SRC.step[0],color:'c3'}}
+
+// ---------- actions ----------
+function toast(msg,kind=''){const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;$('toasts').appendChild(d);
+  setTimeout(()=>d.remove(),2300); while($('toasts').children.length>3)$('toasts').firstChild.remove()}
+function shake(el){const e=$(el);if(!e)return;e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake')}
+function gain(n,msg){S.score+=n;S.stress=Math.max(0,S.stress-1.5);toast((msg?msg+' ':'')+'+'+n,'good')}
+function lose(pts,st,msg){S.score-=pts;S.stress+=st;toast(msg+(pts?' −'+pts:''),'bad')}
+function misfit(it,msg){S.tray.unshift(it);S.stress+=2;toast(msg,'warn');dirty=true}
+function block(sec,it,label,done,hint){if(openSheet&&!openSheet.pause)closeSheet();S.block={t:sec,total:sec,title:it?it.title:'',label,done,hint:hint||''};dirty=true}
+function scheduleComplaint(it){let d=S.day,m=S.min+60+Math.random()*50;if(m>1040){d++;m=580+Math.random()*90}S.sched.push({type:'complain',day:d,min:m,title:it.title})}
+
+function route(it,d,role){
+  const k=it.kind;
+  if(d==='trash'){
+    if(k==='junk')return gain(3,'ทิ้งแล้ว');
+    if(k==='client'){lose(20,10,'ลูกค้าโทรมาต่อว่า ไม่มีใครติดต่อกลับเลย!');return}
+    if(k==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c)c.mood=Math.max(0,c.mood-30);
+      toast(`${it.tag}: งานเราหายไปไหน?!`,'bad');S.returns.push({item:it,t:5,msg:`${it.tag} ทวงงานขั้นนี้กลับมา`});return}
+    if(['quick','task','deleg'].includes(k))scheduleComplaint(it);
+    return toast('ทิ้งแล้ว');
+  }
+  if(d==='now'){
+    if(k==='junk')return block(1.6,it,'อ่านโฆษณาจนจบ…',()=>{S.score-=3;toast('เสียเวลาไปฟรี ๆ −3','bad')});
+    if(k==='info')return block(1.2,it,'อ่าน…',()=>toast('อ่านจบแล้ว… แต่จะจำได้ไหมนะ'));
+    if(k==='meeting')return misfit(it,'ยังไม่ถึงเวลานัดเลย');
+    if(k==='client')return misfit(it,'เรื่องใหญ่ขนาดนี้ทำรวดเดียวไม่จบหรอก');
+    const dur=it.size<=1?1.1:it.size*2.6;
+    return block(dur,it,'กำลังทำ',()=>complete(it,'now'),it.size>=3?'งานนี้ยาวแฮะ… ถาดเริ่มพูนแล้ว':'');
+  }
+  if(CTX[d]){
+    if(k==='junk'){S.score-=3;return toast('ใส่โฆษณาไว้ในลิสต์งาน? ทิ้งไปแล้วกัน −3','bad')}
+    if(k==='info')return misfit(it,'อันนี้ไม่มีอะไรต้องทำ แค่อาจต้องใช้ทีหลัง');
+    if(k==='meeting')return misfit(it,'นัดที่มีเวลาแน่นอน ควรอยู่ที่อื่นนะ');
+    if(k==='client')return misfit(it,'งานลูกค้ามีหลายขั้น ใส่ลิสต์เดียวไม่พอ');
+    if(it.ctx!==d)return misfit(it,`งานนี้ทำจาก${CTX[d].n}ไม่ได้นะ`);
+    S.lists[d].push(it);dirty=true;return gain(2,`ใส่${CTX[d].list}แล้ว`);
+  }
+  if(d==='deleg'){
+    const r=ROLES[role];
+    if(k==='deleg'&&it.role===role){const T=13+Math.random()*8;S.waiting.push({item:it,role,t:T,total:T,willStale:Math.random()<.4,stale:false,staleT:0});dirty=true;return gain(5,`ฝาก${r.name}แล้ว`)}
+    S.stress+=3;S.returns.push({item:it,t:5,msg:`${r.name}: อันนี้ไม่ใช่งานฝ่าย${r.dept}นะ ส่งคืน`});return toast(`ส่งให้${r.name}แล้ว…`);
+  }
+  if(d==='cal'){if(k==='meeting'){S.calendar.push(it);dirty=true;return gain(3,'ลงปฏิทินแล้ว')}return misfit(it,'ไม่มีเวลานัดให้ลงปฏิทินนะ')}
+  if(d==='cab'){if(k==='info'){S.cabinet.push(it);dirty=true;return gain(3,'เก็บเข้าตู้แล้ว')}
+    if(k==='junk'){S.score-=2;return toast('เก็บโฆษณาไว้ทำไมนะ −2','bad')}
+    return misfit(it,'อันนี้ต้องมีคนลงมือ ไม่ใช่แค่เก็บไว้')}
+  if(d==='drawer'){if(k==='idea'){S.drawer.push(it);dirty=true;return gain(3,'เก็บไว้ในลิ้นชัก')}
+    if(k==='junk'){S.score-=2;return toast('ลิ้นชักไม่ใช่ถังขยะนะ −2','bad')}
+    return misfit(it,'อันนี้รอไม่ได้นะ')}
+  if(d==='client'){if(k!=='client')return misfit(it,'นี่ไม่ใช่ลูกค้าใหม่');
+    const c={id:id(),ci:it.ci,name:CLIENTS[it.ci].name,steps:CLIENTS[it.ci].steps,idx:0,mood:100,done:false};S.clients.push(c);
+    S.tray.unshift(stepItem(c));dirty=true;return gain(5,'เปิดแฟ้มลูกค้าแล้ว')}
+}
+function complete(it,via){
+  let p=it.value??({quick:via==='now'?12:8,task:it.size*10,deleg:10,step:15,idea:3}[it.kind]||0);
+  gain(p,'เสร็จ!');
+  if(it.kind==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c&&!c.done){c.idx++;
+    if(c.idx>=c.steps.length){c.done=true;S.score+=60;toast(`${c.name} ปลื้มมาก! งานครบทุกขั้น +60`,'good')}
+    else{addToTray(stepItem(c),true);toast(`${c.name}: ขั้นต่อไปมาลงถาดแล้ว`,'warn')}}}
+  dirty=true;
+}
+function inMotion(c){
+  const f=x=>x&&x.kind==='step'&&x.clientId===c.id;
+  return Object.values(S.lists).some(l=>l.some(f))||S.waiting.some(w=>f(w.item));
+}
+function stalled(){return S.clients.filter(c=>!c.done&&!c.gone&&!inMotion(c))}
+
+// ---------- loop ----------
+let last=performance.now();
+function tick(){
+  const now=performance.now();let dt=Math.min(.25,(now-last)/1000);last=now;
+  if(!S||S.paused||!(S.phase==='play'||S.phase==='wrap'))return;
+  if(S.phase==='play'){S.min+=dt*mps();S.elapsed+=dt;if(S.min>=1080){S.min=1080;enterWrap()}}
+  else{S.min+=dt*1.5;if(S.min>=1140){goHome();return}}
+  if(S.phase==='play'){
+    S.spawnT-=dt;if(S.spawnT<=0){spawnRandom();S.spawnT=cfg().spawn*(.7+Math.random()*.6)}
+    (cfg().clients||[]).forEach(([f,ci],i)=>{if(!S.fired.includes(i)&&S.elapsed>=f*cfg().len){S.fired.push(i);spawnClient(ci)}});
+  }
+  if(S.block){S.block.t-=dt;if(S.block.t<=0){const b=S.block;S.block=null;b.done&&b.done();dirty=true}}
+  else if(S.job){const it=S.lists[S.job.ctx].find(x=>x.id===S.job.id);
+    if(!it)S.job=null;else if(S.mode===S.job.ctx){S.job.t-=dt;if(S.job.t<=0){S.lists[S.job.ctx]=S.lists[S.job.ctx].filter(x=>x!==it);S.job=null;complete(it,'list')}}}
+  for(const r of S.returns){r.t-=dt;if(r.t<=0){addToTray(r.item,true);toast(r.msg,'warn')}}S.returns=S.returns.filter(r=>r.t>0);
+  for(const w of S.waiting){
+    if(w.stale){w.staleT-=dt;if(w.staleT<=0){w.lost=true;lose(10,10,`${ROLES[w.role].name}ลืมเรื่อง "${w.item.title}" ไปแล้ว!`)}}
+    else{w.t-=dt;if(w.willStale&&w.t<=w.total/2){w.stale=true;w.willStale=false;w.staleT=15;dirty=true}
+      else if(w.t<=0){w.finished=true;gain(15,`${ROLES[w.role].name}: เรียบร้อย!`)}}}
+  if(S.waiting.some(w=>w.lost||w.finished)){S.waiting=S.waiting.filter(w=>!w.lost&&!w.finished);dirty=true}
+  for(const a of S.alerts){a.t-=dt;if(a.t<=0){a.gone=true;resolveAlert(a,false)}}
+  if(S.alerts.some(a=>a.gone)){S.alerts=S.alerts.filter(a=>!a.gone);dirty=true}
+  for(const e of S.sched){if(e.day<S.day||(e.day===S.day&&S.min>=e.min)){e.done=true;fire(e)}}
+  S.sched=S.sched.filter(e=>!e.done);
+  const st=stalled();
+  for(const c of S.clients){if(c.done||c.gone)continue;
+    if(st.includes(c))c.mood-=dt*2.6;else c.mood=Math.min(100,c.mood+dt);
+    if(c.mood<=0){c.gone=true;lose(30,15,`${c.name}ยกเลิกงาน! รอนานเกินไป`);S.tray=S.tray.filter(x=>x.clientId!==c.id);
+      for(const k in S.lists)S.lists[k]=S.lists[k].filter(x=>x.clientId!==c.id);dirty=true}}
+  let inc=.22*S.tray.length+1.0*st.length+.9*S.waiting.filter(w=>w.stale).length;
+  if(!S.tray.length&&!S.block)inc-=1.4;
+  if(S.phase==='wrap')inc*=.5;
+  S.stress=Math.max(0,S.stress+inc*dt);
+  if(S.stress>=100){S.stress=100;burnout();return}
+  if(dirty){render();dirty=false}else hud();
+}
+function fire(e){
+  if(e.type==='meet'){const inCal=S.calendar.find(x=>x.id===e.itemId);
+    if(inCal){S.alerts.push({id:id(),type:'meet',itemId:e.itemId,title:inCal.title,t:14,total:14});dirty=true}
+    else{const inTray=S.tray.find(x=>x.id===e.itemId);S.tray=S.tray.filter(x=>x.id!==e.itemId);
+      const t=inTray?inTray.title:'นัดวันนี้';lose(15,12,`พลาดนัด! ${t}`);dirty=true}}
+  if(e.type==='q'){S.alerts.push({id:id(),type:'q',itemId:e.itemId,title:e.q,t:12,total:12});dirty=true}
+  if(e.type==='complain'){lose(10,8,`หัวหน้า: เรื่อง "${e.title}" ไปถึงไหนแล้ว?`)}
+}
+function resolveAlert(a,acted){
+  if(a.type==='meet'){S.calendar=S.calendar.filter(x=>x.id!==a.itemId);
+    if(acted)block(2.4,{title:a.title},'อยู่ในประชุม…',()=>gain(15,'ประชุมเสร็จ'));else lose(15,12,'ไม่ไปประชุมตามนัด!')}
+  if(a.type==='q'){const ok=S.cabinet.some(x=>x.id===a.itemId);
+    if(acted&&ok)gain(15,'เจอในตู้แล้ว!');else if(acted)lose(10,8,'ค้นทั้งตู้ก็ไม่เจอ…');else lose(10,8,'ตอบไม่ได้ ต้องถามคนอื่นต่อ')}
+  dirty=true;
+}
+function enterWrap(){S.phase='wrap';S.job=null;toast('หกโมงเย็นแล้ว! เคลียร์โต๊ะก่อนกลับบ้าน','warn');dirty=true}
+function checks(){
+  const c=[['ถาดเข้าว่างเปล่า',!S.tray.length,30]];
+  if(has('deleg'))c.push(['ไม่มีใครเงียบหายค้างอยู่',!S.waiting.some(w=>w.stale),20]);
+  if(has('client')&&S.clients.some(c=>!c.done&&!c.gone))c.push(['ลูกค้าทุกรายมีงานเดินอยู่',!stalled().length,20]);
+  if(cfg().review)c.push(['เปิดลิ้นชักทบทวนไอเดีย',S.drawerSeen,8*S.drawer.length+10]);
+  return c;
+}
+function goHome(){
+  if(S.phase!=='wrap'&&S.phase!=='play')return;
+  const cs=checks();let bonus=0;cs.forEach(([,ok,p])=>{if(ok)bonus+=p});
+  S.score+=bonus;
+  const pts=S.score-S.dayStart,pot=S.potential+cs.reduce((a,c)=>a+c[2],0);
+  const r=pot?pts/pot:0,stars=r>=.72?3:r>=.48?2:r>=.22?1:0;
+  S.week[S.day]={pts,stars,bonus,cs};
+  S.phase='summary';S.block=null;S.alerts=[];closeSheet();save();showSummary();
+}
+function burnout(){S.phase='burnout';closeSheet();showScreen(`
+  <div class="scr"><h2>หมดไฟ… 😵</h2>
+  <div class="card">เรื่องค้างเต็มหัวจนคิดอะไรไม่ออก วันนี้ขอเริ่มใหม่ตั้งแต่เก้าโมงเช้า</div>
+  <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(cfg().who)}</div>
+  <div>ไม่เป็นไรนะ ความเครียดมาจากของที่ยังไม่ได้ตัดสินใจ ยิ่งถาดโล่ง หัวยิ่งโล่ง ลองใหม่!</div></div>
+  <button class="btn big" data-a="retry">เริ่มวัน${esc(cfg().name)}ใหม่</button></div>`)}
+
+// ---------- render ----------
+function hud(){
+  if(!S)return;
+  $('hDay').textContent=(S.phase==='wrap'?'โอที · ':'วัน')+cfg().name;
+  $('hClock').textContent=fmt(S.min);$('hScore').textContent=S.score+' แต้ม';
+  const s=S.stress,f=$('hStress');f.style.width=s+'%';
+  f.style.background=s<45?'var(--ok)':s<75?'var(--warn)':'var(--stamp)';
+  $('hFace').textContent=s<30?'😌':s<55?'🙂':s<78?'😬':'😵';
+  const bl=$('block');bl.hidden=!S.block;
+  if(S.block){$('bLab').textContent=S.block.label;$('bWhat').textContent=S.block.title;$('bBar').style.width=(100*(1-S.block.t/S.block.total))+'%';
+    $('bHint').textContent=S.block.hint||(S.tray.length>=6?'ถาดใกล้เต็มแล้ว!':'')}
+  if(S.job){const e=document.querySelector(`[data-job="${S.job.id}"]`);if(e)e.style.width=(100*(1-S.job.t/S.job.total))+'%'}
+  document.querySelectorAll('[data-at]').forEach(e=>{const a=S.alerts.find(a=>a.id==e.dataset.at)||S.waiting.find(w=>w.item.id==e.dataset.at);
+    if(a)e.style.width=(100*(a.staleT!=null&&a.stale?a.staleT/15:a.t/a.total))+'%'});
+  document.querySelectorAll('[data-mood]').forEach(e=>{const c=S.clients.find(c=>c.id==e.dataset.mood);if(c){e.style.width=Math.max(0,c.mood)+'%';e.style.background=c.mood>60?'var(--ok)':c.mood>30?'var(--warn)':'var(--stamp)'}});
+}
+function render(){
+  if(!S||!(S.phase==='play'||S.phase==='wrap'))return;
+  // alerts
+  let h='';
+  for(const a of S.alerts){h+=`<div class="alert"><div class="txt">${a.type==='meet'?'📅 ถึงเวลานัด: ':'❓ '}${esc(a.title)}<div class="timer" data-at="${a.id}"></div></div>
+    <button class="btn ${a.type==='meet'?'red':''}" data-a="alert" data-v="${a.id}">${a.type==='meet'?'ไปประชุม':'🗄️ เปิดตู้หา'}</button></div>`}
+  for(const w of S.waiting.filter(w=>w.stale)){h+=`<div class="alert soft"><div class="txt">💤 ${ROLES[w.role].name}เงียบไปเรื่อง “${esc(w.item.title)}”<div class="timer" data-at="${w.item.id}"></div></div>
+    <button class="btn ghost" data-a="nudge" data-v="${w.item.id}">ทวงถาม</button></div>`}
+  $('alerts').innerHTML=h;
+  // tray
+  const cap=8;$('trayCount').textContent=`${S.tray.length}/${cap}`;
+  $('trayBox').classList.toggle('full',S.tray.length>=cap-1);
+  $('tray').innerHTML=S.tray.map(it=>`<button class="note ${it.color||''} ${S.elapsed-it.born<3?'new':''}" data-a="pick" data-v="${it.id}" style="transform:rotate(${((it.id*37)%5-2)*.6}deg)">
+    <span class="src"><span>${esc(it.src)}</span>${it.tag?`<span>${esc(it.tag)}</span>`:''}</span><span class="t">${esc(it.title)}</span></button>`).join('')
+    +(S.tray.length%2?'<div class="slot"></div>':'');
+  if(!S.tray.length)$('tray').innerHTML=`<div class="empty" style="grid-column:1/-1">ถาดว่าง หัวโล่ง 😌</div>`;
+  // modes
+  const ms=Object.keys(CTX).filter(has);
+  $('modes').innerHTML=ms.map(m=>`<button class="mode ${S.mode===m?'on':''}" data-a="mode" data-v="${m}">${CTX[m].i} ${ms.length>1?CTX[m].n.replace('เดินในออฟฟิศ','เดิน'):CTX[m].n}<span class="n">${S.lists[m].length}</span></button>`).join('');
+  const L=S.lists[S.mode];
+  $('list').innerHTML=L.length?L.map(it=>{const doing=S.job&&S.job.id===it.id;return`<button class="task ${doing?'doing':''}" data-a="work" data-v="${it.id}">
+    <span class="tt">${it.tag?`<span class="tag">📁 ${esc(it.tag)}</span><br>`:''}${esc(it.title)}</span><span class="dots">${DOTS(it.size)}</span>
+    <span class="pbar"><i ${doing?`data-job="${it.id}"`:''}></i></span></button>`}).join('')
+    :`<div class="empty">${S.phase==='wrap'?'ลิสต์นี้ว่างแล้ว':'ลิสต์ตรงนี้ว่าง แตะงานในลิสต์เพื่อลงมือทำ'}</div>`;
+  // chips
+  const chips=[];
+  if(has('deleg'))chips.push(['waiting','🤝','รอคนอื่น',S.waiting.length,S.waiting.some(w=>w.stale)]);
+  if(has('cal'))chips.push(['cal','📅','ปฏิทิน',S.calendar.length,false]);
+  if(has('cab'))chips.push(['cab','🗄️','ตู้เอกสาร',S.cabinet.length,false]);
+  if(has('drawer'))chips.push(['drawer','🌙','ลิ้นชัก',S.drawer.length,false]);
+  if(has('client'))chips.push(['clients','📁','ลูกค้า',S.clients.filter(c=>!c.done&&!c.gone).length,stalled().length>0]);
+  $('chips').innerHTML=chips.map(([k,i,n,c,hot])=>`<button class="chip ${hot?'hot':''}" data-a="view" data-v="${k}"><span>${i} ${n}</span><b>${c}</b></button>`).join('');
+  // wrap
+  const w=$('wrap');w.hidden=S.phase!=='wrap';
+  if(S.phase==='wrap'){w.innerHTML=`<div class="wrapbox"><h3>ก่อนกลับบ้าน เคลียร์โต๊ะให้เรียบร้อย</h3>
+    ${checks().map(([t,ok,p])=>`<div class="check ${ok?'done':''}"><span class="box">${ok?'✓':''}</span>${esc(t)}<span class="pts">+${p}</span></div>`).join('')}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${cfg().review&&!S.drawerSeen?'<button class="btn ghost" data-a="view" data-v="drawer">🌙 เปิดลิ้นชัก</button>':''}
+    <button class="btn" data-a="home" style="flex:1">🏠 กลับบ้าน</button></div></div>`}
+  hud();
+  if(openSheet&&openSheet.view)renderView(openSheet.view);
+}
+
+// ---------- sheets ----------
+function showSheet(html){$('sheetBody').innerHTML=html;$('sheet').hidden=false}
+function closeSheet(){openSheet=null;$('sheet').hidden=true}
+function renderPick(it,sub){
+  if(sub==='deleg'){showSheet(`<h4>ส่งต่อให้ใคร?</h4><div class="bignote ${it.color||''}"><div class="t">${esc(it.title)}</div></div>
+    <div class="dests">${Object.entries(ROLES).map(([k,r])=>`<button class="dest" data-a="to" data-v="deleg:${k}"><span class="i">${r.i}</span>${r.name}<small>${r.dept}</small></button>`).join('')}</div>
+    <div style="margin-top:10px"><button class="btn ghost" data-a="back">← กลับ</button></div>`);return}
+  const meta=[];if(it.size)meta.push('ความยาวงาน '+DOTS(Math.min(it.size,3))+(it.size>3?'+':''));
+  showSheet(`<div class="bignote ${it.color||''}"><div class="meta" style="margin:0 0 6px"><span>${esc(it.src)}</span>${it.tag?`<span>📁 ${esc(it.tag)}</span>`:''}</div>
+    <div class="t">${esc(it.title)}</div>${meta.length?`<div class="meta">${meta.join(' · ')}</div>`:''}</div>
+    <h4>จะทำอะไรกับแผ่นนี้?</h4>
+    <div class="dests">${DEST.filter(([d])=>has(d)).map(([d,i,l])=>`<button class="dest" data-a="to" data-v="${d}"><span class="i">${i}</span>${l}</button>`).join('')}</div>`);
+}
+function renderView(v){
+  let h='';
+  if(v==='waiting'){h=`<h4>🤝 รอคนอื่นทำ</h4><div class="rows">${S.waiting.map(w=>`<div class="row"><span>${ROLES[w.role].i}</span><div class="grow">${esc(w.item.title)}<br><small>${ROLES[w.role].name} · ${w.stale?'💤 เงียบไป':'กำลังทำ'}</small></div>
+    ${w.stale?`<button class="btn ghost" data-a="nudge" data-v="${w.item.id}">ทวง</button>`:''}</div>`).join('')||'<div class="empty">ยังไม่ได้ฝากงานใคร</div>'}</div>`}
+  if(v==='cal'){h=`<h4>📅 นัดวันนี้</h4><div class="rows">${[...S.calendar].sort((a,b)=>a.time-b.time).map(x=>`<div class="row"><b style="font-family:var(--mono)">${fmt(x.time)}</b><div class="grow">${esc(x.title.split(' · ')[0])}</div></div>`).join('')||'<div class="empty">ปฏิทินว่าง</div>'}</div>`}
+  if(v==='cab'){h=`<h4>🗄️ ตู้เอกสาร</h4><div class="rows">${S.cabinet.map(x=>`<div class="row">📄<div class="grow">${esc(x.title)}</div></div>`).join('')||'<div class="empty">ตู้ยังว่าง</div>'}</div>`}
+  if(v==='drawer'){
+    if(cfg().review&&S.phase==='wrap'&&!S.drawerSeen){S.drawerSeen=true;if(S.drawer.length)toast(`ไอเดียเก่ากลายเป็นข้อเสนอดี ๆ ให้หัวหน้า`,'good');dirty=true}
+    h=`<h4>🌙 ลิ้นชัก</h4><div class="rows">${S.drawer.map(x=>`<div class="row">💡<div class="grow">${esc(x.title)}${x.returnDay!=null?`<br><small>รอถึงวัน${DAYS[x.returnDay].name}</small>`:''}</div></div>`).join('')||'<div class="empty">ลิ้นชักว่าง</div>'}</div>`}
+  if(v==='clients'){h=`<h4>📁 แฟ้มลูกค้า</h4><div class="rows">${S.clients.map(c=>{const mv=inMotion(c);const st=c.done?'เสร็จครบแล้ว 🎉':c.gone?'ยกเลิกไปแล้ว':mv?'มีงานเดินอยู่':'งานหยุดนิ่ง! ขั้นต่อไปยังค้างในถาด';
+    return`<div class="row"><div class="grow"><b>${esc(c.name)}</b> <small>ขั้น ${Math.min(c.idx+1,c.steps.length)}/${c.steps.length}</small><br><small>${st}</small>${!c.done&&!c.gone?`<div class="mood"><i data-mood="${c.id}"></i></div>`:''}</div></div>`}).join('')||'<div class="empty">ยังไม่มีลูกค้า</div>'}</div>`}
+  showSheet(h+`<div style="margin-top:12px"><button class="btn ghost" data-a="closeSheet">ปิด</button></div>`);hud();
+}
+
+// ---------- screens ----------
+function showScreen(html){$('screen').innerHTML=html;$('screen').hidden=false;$('screen').scrollTop=0;$('app').hidden=true}
+function hideScreen(){$('screen').hidden=true;$('app').hidden=false}
+function dayDots(){return`<div class="days">${['จ','อ','พ','พฤ','ศ'].map((n,i)=>`<span class="${S&&S.week[i]?'done':''} ${S&&i===S.day&&!S.week[i]?'cur':''}">${n}</span>`).join('')}</div>`}
+function showTitle(){
+  const saved=load();const canCont=saved&&saved.phase==='summary'&&saved.day<4;
+  $('app').hidden=true;showScreen(`<div class="scr">
+    <h1 class="logo"><span>ออฟฟิศป่วน</span></h1>
+    <p class="sub">สัปดาห์แรกของพนักงานใหม่ งานถล่มมาไม่หยุด เอาตัวรอดให้ถึงเย็นวันศุกร์</p>
+    <div class="stack-notes">
+      <div class="note" style="left:4%;top:10px;transform:rotate(-6deg)"><span class="src">📧 อีเมล</span><span class="t">ยินดีด้วย! คุณได้รับ iPhone ฟรี</span></div>
+      <div class="note c3" style="left:32%;top:34px;transform:rotate(3deg)"><span class="src">💬 แชท</span><span class="t">เครื่องพิมพ์ชั้น 3 กระดาษติดอีกแล้ว</span></div>
+      <div class="note c2" style="right:2%;top:4px;transform:rotate(8deg)"><span class="src">📝 โน้ต</span><span class="t">ทำสไลด์ยอดขายเดือนนี้</span></div>
+    </div>
+    <button class="btn big" data-a="new">เริ่มงานวันแรก</button>
+    ${canCont?`<button class="btn big ghost" data-a="cont">ทำงานต่อ · วัน${DAYS[saved.day+1].name}</button>`:''}
+    <p class="sub" style="font-size:13px">เล่นได้ทั้งมือถือและคอม ใช้แค่นิ้วแตะ · ประมาณ 2–3 นาทีต่อวัน</p></div>`)}
+function showIntro(){
+  const d=cfg();showScreen(`<div class="scr">${dayDots()}<h2>วัน${d.name} · 09:00</h2>
+    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(d.who)}</div><div>${esc(d.hello)}</div>
+    ${d.tips.map(([i,t])=>`<div class="tip"><span class="i">${i}</span><span>${esc(t)}</span></div>`).join('')}</div>
+    ${S.day>0?`<div class="card" style="font-size:14px;color:var(--muted)">ของที่ค้างจากเมื่อวานยังอยู่ครบ ถาด ลิสต์ และงานที่ฝากคนอื่นไว้</div>`:''}
+    <button class="btn big" data-a="play">เข้างาน</button></div>`)}
+function showSummary(){
+  const w=S.week[S.day],d=cfg();
+  showScreen(`<div class="scr">${dayDots()}<h2>จบวัน${d.name}</h2>
+    <div class="stars">${[0,1,2].map(i=>`<span class="${i<w.stars?'':'off'}">★</span>`).join('')}</div>
+    <div class="card"><div class="kv"><span>แต้มวันนี้</span><b>${w.pts}</b></div>
+    ${w.cs.map(([t,ok,p])=>`<div class="kv"><span>${ok?'✓':'✗'} ${esc(t)}</span><b>${ok?'+'+p:'0'}</b></div>`).join('')}
+    <div class="kv"><span>แต้มสะสม</span><b>${S.score}</b></div></div>
+    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(d.who)}</div><div>${esc(praise(w.stars))}</div></div>
+    ${S.day<4?`<button class="btn big" data-a="next">ไปวัน${DAYS[S.day+1].name}</button>`:`<button class="btn big" data-a="ending">ดูผลงานทั้งสัปดาห์</button>`}
+    <button class="btn ghost" data-a="retry">เล่นวันนี้ใหม่</button></div>`)}
+function praise(s){return['วันนี้หนักหน่อย พรุ่งนี้ลองจัดการแต่ละแผ่นให้ไวขึ้น อย่าปล่อยให้ค้างในถาด','พอไหว! ลองแยกงานสั้นทำเลย งานยาวใส่ลิสต์ แล้วจะลื่นขึ้นเยอะ','ดีมาก! โต๊ะเป็นระเบียบ งานเดินตลอด','สุดยอด! แบบนี้พี่วางใจได้เลย'][s]}
+function showEnding(){
+  const tot=S.week.reduce((a,w)=>a+(w?w.stars:0),0);
+  const rank=tot>=13?['ตำนานโต๊ะว่าง','งานเข้ามาเท่าไหร่ก็ไม่เคยค้างในหัว ทุกคนอยากรู้ว่าทำได้ยังไง']:tot>=9?['พนักงานดีเด่นประจำสัปดาห์','หัวหน้าเริ่มฝากงานสำคัญให้แล้ว']:tot>=5?['มือใหม่ไฟแรง','ยังมีหลุดบ้าง แต่จับทางได้แล้ว']:['ผู้รอดชีวิตสัปดาห์แรก','รอดมาถึงวันศุกร์ได้ก็เก่งแล้ว!'];
+  showScreen(`<div class="scr">${dayDots()}<h2>ศุกร์เย็น · สัปดาห์แรกจบแล้ว</h2>
+    <div class="card" style="text-align:center"><div style="font-size:13px;color:var(--muted)">ตำแหน่งที่ได้</div>
+    <div style="font-family:var(--display);font-size:26px;margin:4px 0">${rank[0]}</div><div>${rank[1]}</div>
+    <div class="stars" style="font-size:22px;margin-top:8px">★ ${tot}/15</div></div>
+    <div class="card">${S.week.map((w,i)=>`<div class="kv"><span>วัน${DAYS[i].name}</span><b>${'★'.repeat(w.stars)}${'☆'.repeat(3-w.stars)} · ${w.pts}</b></div>`).join('')}
+    <div class="kv"><span>รวมทั้งสัปดาห์</span><b>${S.score} แต้ม</b></div></div>
+    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>พี่นุ่น · หัวหน้าทีม</div>
+    <div>รู้ไหม เคล็ดลับของคนทำงานเก่งไม่ใช่การจำเก่ง แต่คือไม่เก็บอะไรไว้ในหัวเลย ทุกเรื่องมีที่ของมัน หัวเลยว่างไว้คิดเรื่องที่สำคัญจริง ๆ</div></div>
+    <button class="btn big" data-a="new">เริ่มสัปดาห์ใหม่</button></div>`)}
+
+// ---------- flow ----------
+function startDay(){
+  S.phase='intro';S.min=540;S.elapsed=0;S.spawnT=1.2;S.fired=[];S.alerts=[];S.job=null;S.block=null;S.drawerSeen=false;S.potential=0;S.mode='pc';
+  S.calendar=[];S.stress=Math.min(60,8+S.tray.length*4+S.waiting.filter(w=>w.stale).length*5);
+  S.dayStart=S.score;
+  showIntro();
+}
+function begin(){
+  snap=JSON.stringify(S);
+  // drawer items whose day has come go back to the tray
+  const due=S.drawer.filter(x=>x.returnDay===S.day);S.drawer=S.drawer.filter(x=>x.returnDay!==S.day);
+  S.phase='play';
+  due.forEach(x=>{addToTray({id:id(),kind:'task',title:x.becomes,ctx:'pc',size:1,value:20,src:'🌙 จากลิ้นชัก',color:'c2'},true);S.potential+=20});
+  if(due.length)setTimeout(()=>toast('ของในลิ้นชักถึงวันของมันแล้ว!','good'),600);
+  if(cfg().tickler){const t={id:id(),kind:'idea',title:'ประกาศ: สัมมนาการตลาดฟรี เปิดรับสมัครวันศุกร์',ctx:'pc',size:3,returnDay:4,becomes:'สมัครสัมมนาการตลาดฟรี (เปิดรับวันนี้!)',src:'📌 ประกาศ',color:'',born:0};
+    S.tray.push(t);S.potential+=3}
+  hideScreen();dirty=true;last=performance.now();render();
+}
+function act(a,v,el){
+  if(a==='new'){S=fresh();startDay();return}
+  if(a==='cont'){S=load();S.day++;startDay();return}
+  if(a==='play'){begin();return}
+  if(a==='next'){S.day++;startDay();return}
+  if(a==='retry'){if(snap){S=JSON.parse(snap);begin()}return}
+  if(a==='ending'){showEnding();return}
+  if(!S||!(S.phase==='play'||S.phase==='wrap'))return;
+  if(a==='pause'){S.paused=!S.paused;if(S.paused)showSheet(`<h4>☕ พักกาแฟ</h4><p style="color:var(--muted);margin:0 0 12px">เวลาในออฟฟิศหยุดเดินอยู่</p><button class="btn big" data-a="resume" style="width:100%">กลับไปทำงาน</button>`),openSheet={pause:1};return}
+  if(a==='resume'){S.paused=false;closeSheet();last=performance.now();return}
+  if(a==='closeSheet'){if(el&&el.id==='sheet'&&openSheet&&openSheet.pause)return;if(openSheet&&openSheet.pause){S.paused=false;last=performance.now()}closeSheet();return}
+  if(S.block)return;
+  if(a==='pick'){const it=S.tray.find(x=>x.id==v);if(!it)return;openSheet={pick:it.id};renderPick(it);return}
+  if(a==='back'){const it=S.tray.find(x=>x.id==openSheet?.pick);if(it)renderPick(it);return}
+  if(a==='to'){const it=S.tray.find(x=>x.id==openSheet?.pick);if(!it){closeSheet();return}
+    if(v==='deleg'){renderPick(it,'deleg');return}
+    const [d,role]=v.split(':');S.tray=S.tray.filter(x=>x!==it);closeSheet();route(it,d,role);dirty=true;return}
+  if(a==='mode'){if(v===S.mode)return;const from=S.mode;block(1.3,{title:`${CTX[from].n} → ${CTX[v].n}`},'ย้ายที่…',()=>{S.mode=v;dirty=true});return}
+  if(a==='work'){const it=S.lists[S.mode].find(x=>x.id==v);if(!it)return;
+    if(S.job&&S.job.id===it.id)return;
+    if(S.job){toast('ทำทีละอย่างนะ งานเดิมยังไม่เสร็จ','warn');return}
+    S.job={id:it.id,ctx:S.mode,t:it.size*2.4,total:it.size*2.4};dirty=true;return}
+  if(a==='alert'){const al=S.alerts.find(x=>x.id==v);if(!al)return;S.alerts=S.alerts.filter(x=>x!==al);resolveAlert(al,true);return}
+  if(a==='nudge'){const w=S.waiting.find(w=>w.item.id==v);if(!w)return;w.stale=false;w.t=4;w.total=4;toast(`ทวง${ROLES[w.role].name}แล้ว`,'');dirty=true;return}
+  if(a==='view'){openSheet={view:v};renderView(v);return}
+  if(a==='home'){goHome();return}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;
+  if(b.id==='sheet'&&e.target!==b)return; act(b.dataset.a,b.dataset.v,b)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S&&(S.phase==='play'||S.phase==='wrap')&&!S.paused)act('pause')});
+// idea items bound for a future day
+const _route=route;
+route=function(it,d,role){if(it.returnDay!=null&&d==='drawer'){S.drawer.push(it);dirty=true;return gain(3,'เก็บไว้ในลิ้นชัก รอวันเปิดรับสมัคร')}
+  if(it.returnDay!=null&&d==='now')return block(2,it,'กำลังสมัคร…',()=>toast('ยังไม่เปิดรับสมัครเลย ต้องรอวันศุกร์','warn'));
+  return _route(it,d,role)};
+setInterval(tick,100);
+showTitle();
+</script>
