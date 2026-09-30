@@ -1,129 +1,108 @@
-<title>ออฟฟิศป่วน</title>
+<title>โต๊ะว่าง ใจว่าง</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: one phone-height desk — HUD, alert strip, in-tray of sticky notes, "where I am" work list, status chips. */
+/* Layout: one phone-width desk — HUD (clock, energy), next appointment, in-tray, the list for where I am, status chips. Turn-based: nothing moves until you act. */
 :root{
   --desk:#E3EBE5; --panel:#F8FBF8; --ink:#18243B; --muted:#56657B; --line:#C7D5CD;
-  --note:#FFE27A; --note2:#FFD1DC; --note3:#CDEBFF; --note-ink:#2E2500;
-  --accent:#2D5BE3; --stamp:#D5363F; --ok:#1C8A57; --warn:#B86E00; --shade:rgba(24,36,59,.14);
-  --scrim:rgba(20,28,44,.45);
-  --display:'Mitr','Sarabun',system-ui,sans-serif; --body:'Sarabun',system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --note:#FFE27A; --note2:#FFD1DC; --note3:#CDEBFF; --back:#B9C8D8; --note-ink:#2E2500;
+  --accent:#2D5BE3; --stamp:#D5363F; --ok:#1C8A57; --warn:#B86E00; --shade:rgba(24,36,59,.14); --scrim:rgba(20,28,44,.45);
+  --display:'Mitr','Sarabun',system-ui,sans-serif; --body:'Sarabun',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --desk:#111922; --panel:#19232F; --ink:#E6EDF6; --muted:#98A6BA; --line:#2B394B;
-  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --note-ink:#1F1800;
-  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4);
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --back:#3A4A5E; --note-ink:#1F1800;
+  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); color-scheme:dark}}
 :root[data-theme="dark"]{
   --desk:#111922; --panel:#19232F; --ink:#E6EDF6; --muted:#98A6BA; --line:#2B394B;
-  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --note-ink:#1F1800;
-  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4);
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+  --note:#E6C75A; --note2:#E9A9BB; --note3:#9CC9EA; --back:#3A4A5E; --note-ink:#1F1800;
+  --accent:#7FA3FF; --stamp:#FF6B73; --ok:#4FCB8E; --warn:#F0AA3C; --shade:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); color-scheme:dark}
 html,body{height:100%}
-body{background:var(--desk);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
-  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px;padding-inline:16px;
-  -webkit-tap-highlight-color:transparent;user-select:none}
+[hidden]{display:none!important}
+body{background:var(--desk);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;
+  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px;-webkit-tap-highlight-color:transparent;user-select:none}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:disabled{opacity:.45;cursor:default}
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-#app{max-width:480px;margin:0 auto;padding-block:10px 24px;display:flex;flex-direction:column;gap:12px}
-.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border:1px solid var(--line);
-  border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;align-items:center;box-shadow:0 4px 14px var(--shade)}
-.hud .day{font-family:var(--display);font-weight:500;font-size:16px}
-.hud .clock{font-family:var(--mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
-.hud .score{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
-.hud .pause{width:34px;height:34px;border-radius:10px;border:1px solid var(--line)}
-.stress{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
-.stress .bar{flex:1;height:8px;border-radius:99px;background:var(--desk);overflow:hidden;border:1px solid var(--line)}
-.stress .fill{height:100%;width:0;background:var(--ok);transition:width .3s,background .3s}
-.stress .face{font-size:18px;width:22px;text-align:center}
-.hud-r{display:flex;align-items:center;gap:10px}
-.sec-h{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-size:14px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px}
-.sec-h b{color:var(--ink);font-weight:500}
-#alerts{display:flex;flex-direction:column;gap:8px}
-.alert{background:var(--panel);border:1.5px solid var(--stamp);border-radius:12px;padding:8px 10px;display:flex;gap:10px;align-items:center;animation:pop .25s ease-out}
-.alert.soft{border-color:var(--warn)}
-.alert .txt{flex:1;min-width:0;font-size:14px}
-.alert .timer{height:3px;background:var(--stamp);border-radius:2px;margin-top:4px;transition:width .1s linear}
-.alert.soft .timer{background:var(--warn)}
+#app{max-width:480px;margin:0 auto;padding-block:10px 28px;display:flex;flex-direction:column;gap:12px}
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;
+  display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;box-shadow:0 4px 14px var(--shade)}
+.hud .day{font-family:var(--display);font-weight:500;font-size:15px}
+.hud .day small{display:block;font-family:var(--body);font-weight:400;color:var(--muted);font-size:12px}
+.hud .clock{font-family:var(--mono);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;text-align:right}
+.hud .clock small{display:block;font-size:11px;color:var(--accent);font-weight:500}
+.energy{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.energy .bar{flex:1;height:8px;border-radius:99px;background:var(--desk);overflow:hidden;border:1px solid var(--line)}
+.energy .fill{height:100%;transition:width .4s,background .4s}
+.energy b{font-family:var(--mono);color:var(--ink);font-size:12px;min-width:3ch;text-align:right}
+.next{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:8px 10px;font-size:14px}
+.next .grow{flex:1;min-width:0}
 .btn{background:var(--accent);color:var(--panel);font-family:var(--display);font-weight:500;border-radius:10px;padding:8px 14px;white-space:nowrap}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.red{background:var(--stamp)}
 .btn.big{padding:13px 22px;font-size:17px;border-radius:14px}
-.tray{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
-.tray-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.note{position:relative;min-height:84px;border-radius:4px 4px 4px 14px;padding:10px 10px 8px;background:var(--note);color:var(--note-ink);
-  text-align:left;box-shadow:0 3px 0 rgba(0,0,0,.06),0 6px 12px var(--shade);display:flex;flex-direction:column;gap:4px;animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.sec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--display);font-size:14px;color:var(--muted);margin-bottom:8px}
+.sec-h b{color:var(--ink);font-weight:500}
+.tray-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.note{flex:none;width:112px;min-height:78px;border-radius:4px 4px 4px 14px;padding:8px;background:var(--note);color:var(--note-ink);text-align:left;
+  box-shadow:0 3px 0 rgba(0,0,0,.05),0 5px 10px var(--shade);display:flex;flex-direction:column;gap:3px;font-size:12.5px;line-height:1.3}
 .note.c2{background:var(--note2)} .note.c3{background:var(--note3)}
-.note .src{font-size:13px;opacity:.75;display:flex;justify-content:space-between}
-.note .t{font-size:14px;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.note.new::after{content:"ใหม่";position:absolute;top:-6px;right:-4px;background:var(--stamp);color:var(--panel);font-size:10px;padding:1px 6px;border-radius:99px;font-family:var(--display)}
-.slot{min-height:84px;border:1.5px dashed var(--line);border-radius:4px 4px 4px 14px}
-.tray.full{border-color:var(--stamp);box-shadow:0 0 0 3px color-mix(in srgb,var(--stamp) 25%,transparent)}
-.work{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.note.down{background:var(--back);color:var(--ink)}
+.note .s{opacity:.75;font-size:11px}
+.note .t{font-weight:500;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.empty{color:var(--muted);font-size:13px;padding:8px 4px;text-align:center}
 .modes{display:flex;gap:6px;margin-bottom:10px;background:var(--desk);padding:4px;border-radius:12px}
-.mode{flex:1;padding:8px 4px;border-radius:9px;font-family:var(--display);font-size:14px;display:flex;justify-content:center;gap:6px;align-items:center}
+.mode{flex:1;padding:8px 4px;border-radius:9px;font-family:var(--display);font-size:13.5px;display:flex;justify-content:center;gap:5px;align-items:center}
 .mode.on{background:var(--panel);box-shadow:0 2px 6px var(--shade);color:var(--accent)}
 .mode .n{font-family:var(--mono);font-size:11px;background:var(--line);border-radius:99px;padding:0 6px;color:var(--ink)}
 .tasks{display:flex;flex-direction:column;gap:6px}
-.task{display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
-.task .tt{min-width:0;font-size:14px}
+.task{display:flex;flex-direction:column;gap:2px;text-align:left;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.task:active{background:var(--desk)}
+.task .tt{font-size:14.5px}
+.task .meta{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
 .task .tag{font-size:11px;color:var(--accent);font-family:var(--display)}
-.task .dots{font-size:10px;letter-spacing:2px;color:var(--muted);align-self:center}
-.task .pbar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--desk);overflow:hidden}
-.task .pbar i{display:block;height:100%;width:0;background:var(--accent)}
-.task.doing{border-color:var(--accent)}
-.empty{color:var(--muted);font-size:13px;padding:10px 4px;text-align:center}
-.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+.due{color:var(--warn);font-weight:600} .due.late{color:var(--stamp)}
+.heavy{color:var(--stamp)}
+.acts{display:flex;gap:8px}
+.acts .btn{flex:1}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,1fr));gap:8px}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
 .chip b{font-family:var(--mono);font-size:16px;color:var(--ink)}
-.chip.hot{border-color:var(--stamp);color:var(--stamp);animation:pulse 1.2s infinite}
-.wrapbox{background:var(--panel);border:2px solid var(--accent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.wrapbox h3{margin:0;font-family:var(--display);font-weight:500;font-size:17px}
-.check{display:flex;gap:8px;align-items:center;font-size:14px}
-.check .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;flex:none}
-.check.done .box{background:var(--ok);border-color:var(--ok);color:var(--panel)}
-.check .pts{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted)}
-/* sheet */
+.chip.hot{border-color:var(--stamp);color:var(--stamp)}
 .sheet{position:fixed;inset:0;z-index:20;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
-.sheet-panel{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));
-  max-height:86%;overflow:auto;animation:up .22s ease-out}
-.sheet-panel h4{margin:0 0 8px;font-family:var(--display);font-weight:500;font-size:16px}
+.sheet.modal{z-index:25;align-items:center;padding:16px}
+.panel{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:88%;overflow:auto;animation:up .2s ease-out}
+.modal .panel{border-radius:20px;max-width:380px;padding:18px;animation:pop .2s ease-out}
+.panel h4{margin:0 0 8px;font-family:var(--display);font-weight:500;font-size:16px}
+.panel p{margin:0 0 12px;color:var(--muted)}
 .bignote{background:var(--note);color:var(--note-ink);border-radius:4px 4px 4px 16px;padding:14px;margin-bottom:12px;box-shadow:0 6px 14px var(--shade)}
 .bignote.c2{background:var(--note2)} .bignote.c3{background:var(--note3)}
 .bignote .t{font-size:17px;font-weight:600;line-height:1.35}
-.bignote .meta{font-size:12px;opacity:.75;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.bignote .meta{font-size:12.5px;opacity:.8;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
 .dests{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .dest{border:1px solid var(--line);border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--display);font-size:13px;background:var(--panel)}
 .dest .i{font-size:22px}
+.dest small{font-family:var(--body);color:var(--muted);font-size:11px}
 .dest:active{transform:scale(.96);background:var(--desk)}
+.col{display:flex;flex-direction:column;gap:8px}
 .rows{display:flex;flex-direction:column;gap:6px}
 .row{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px}
 .row .grow{flex:1;min-width:0}
 .row small{color:var(--muted)}
 .mood{height:6px;border-radius:3px;background:var(--desk);overflow:hidden;margin-top:4px}
 .mood i{display:block;height:100%}
-/* overlays */
-#block{position:fixed;inset:0;z-index:15;background:var(--scrim);display:grid;place-items:center;padding:16px}
-.blockcard{background:var(--panel);border-radius:18px;padding:18px;width:min(340px,100%);text-align:center;box-shadow:0 10px 30px var(--shade)}
-.blockcard .lab{font-family:var(--display);font-size:13px;color:var(--muted)}
-.blockcard .what{font-weight:600;margin:6px 0 12px}
-.blockcard .bar{height:10px;border-radius:5px;background:var(--desk);overflow:hidden}
-.blockcard .bar i{display:block;height:100%;background:var(--accent);width:0}
-.blockcard .hint{font-size:12px;color:var(--stamp);margin-top:10px;min-height:1em}
+.progress{font-size:12px;color:var(--muted);margin-bottom:8px}
 #toasts{position:fixed;left:0;right:0;top:calc(10px + env(safe-area-inset-top,0px));z-index:40;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding-inline:16px}
-.toast{background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:99px;font-size:13px;max-width:100%;animation:toast 2.2s ease forwards;font-family:var(--display)}
+.toast{background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:99px;font-size:13px;max-width:100%;animation:toast 2.6s ease forwards;font-family:var(--display);text-align:center}
 .toast.good{background:var(--ok)} .toast.bad{background:var(--stamp)} .toast.warn{background:var(--warn)}
-#screen{position:fixed;inset:0;z-index:30;background:var(--desk);overflow:auto;padding-inline:16px;
-  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px}
-.scr{max-width:460px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 40px;display:flex;flex-direction:column;gap:16px}
-.logo{font-family:var(--display);font-weight:600;font-size:clamp(44px,14vw,64px);line-height:1;letter-spacing:-.01em;margin:24px 0 0;text-wrap:balance}
-.logo span{display:inline-block;background:var(--note);color:var(--note-ink);padding:0 10px;transform:rotate(-2deg);border-radius:4px 4px 4px 14px;box-shadow:0 6px 14px var(--shade)}
-.sub{color:var(--muted);font-size:16px;max-width:34ch}
-.stack-notes{position:relative;height:150px;margin:6px 0}
-.stack-notes .note{position:absolute;width:150px;min-height:92px;animation:none}
-.bubble{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+#screen{position:fixed;inset:0;z-index:30;background:var(--desk);overflow:auto;padding-inline:16px;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px}
+.scr{max-width:460px;margin:0 auto;padding-block:28px 40px;display:flex;flex-direction:column;gap:16px}
+.logo{font-family:var(--display);font-weight:600;font-size:clamp(40px,12.5vw,58px);line-height:1.15;margin:24px 0 0;text-wrap:balance}
+.logo span{display:inline-block;background:var(--note);color:var(--note-ink);padding:2px 12px;border-radius:4px 4px 4px 14px;box-shadow:0 6px 14px var(--shade)}
+.logo span:first-child{transform:rotate(-2deg)} .logo span+span{transform:rotate(1.5deg);background:var(--note3)}
+.sub{color:var(--muted);font-size:16px;max-width:34ch;margin:0}
+.bubble{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
 .who{display:flex;align-items:center;gap:10px;font-family:var(--display)}
 .avatar{width:42px;height:42px;border-radius:50%;background:var(--note3);display:grid;place-items:center;font-size:22px}
 .tip{display:flex;gap:10px;font-size:15px}
@@ -131,474 +110,434 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
 .stars{font-size:38px;letter-spacing:6px;text-align:center}
 .stars .off{opacity:.2}
-.kv{display:flex;justify-content:space-between;font-size:15px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:5px 0;border-bottom:1px dashed var(--line)}
 .kv:last-child{border-bottom:0}
-.kv b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.kv b{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .days{display:flex;gap:6px;justify-content:center}
 .days span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--display);font-size:13px}
 .days span.done{background:var(--ok);border-color:var(--ok);color:var(--panel)}
 .days span.cur{border-color:var(--accent);color:var(--accent)}
+.perk{display:flex;gap:12px;align-items:center;text-align:left;padding:12px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel)}
+.perk .i{font-size:28px}
+.perk small{display:block;color:var(--muted)}
+.perk:active{border-color:var(--accent)}
+.perklist{display:flex;flex-wrap:wrap;gap:6px;font-size:18px}
 h2{font-family:var(--display);font-weight:500;font-size:26px;margin:0;text-wrap:balance}
-@keyframes drop{from{transform:translateY(-18px) rotate(-4deg);opacity:0}}
-@keyframes pop{from{transform:scale(.96);opacity:0}}
+@keyframes pop{from{transform:scale(.95);opacity:0}}
 @keyframes up{from{transform:translateY(40px);opacity:.4}}
-@keyframes pulse{50%{opacity:.55}}
-@keyframes toast{0%{opacity:0;transform:translateY(-8px)}10%,80%{opacity:1;transform:none}100%{opacity:0}}
-@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-.shake{animation:shake .25s 2}
+@keyframes toast{0%{opacity:0;transform:translateY(-8px)}8%,82%{opacity:1;transform:none}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
-<div id="app" hidden>
-  <header class="hud">
-    <div class="day" id="hDay">วันจันทร์</div>
-    <div class="clock" id="hClock">09:00</div>
-    <div class="hud-r"><span class="score" id="hScore">0</span><button class="pause" data-a="pause" aria-label="พัก">☕</button></div>
-    <div class="stress"><span class="face" id="hFace">😌</span><span>ความเครียด</span><div class="bar"><div class="fill" id="hStress"></div></div></div>
-  </header>
-  <div id="alerts"></div>
-  <section class="tray" id="trayBox">
-    <div class="sec-h"><span><b>ถาดเข้า</b> · แตะแผ่นเพื่อจัดการ</span><span id="trayCount"></span></div>
-    <div class="tray-grid" id="tray"></div>
-  </section>
-  <section class="work">
-    <div class="modes" id="modes"></div>
-    <div class="tasks" id="list"></div>
-  </section>
-  <div class="chips" id="chips"></div>
-  <div id="wrap" hidden></div>
-</div>
-<div id="sheet" class="sheet" hidden data-a="closeSheet"><div class="sheet-panel" id="sheetBody"></div></div>
-<div id="block" hidden><div class="blockcard"><div class="lab" id="bLab">กำลังทำ</div><div class="what" id="bWhat"></div><div class="bar"><i id="bBar"></i></div><div class="hint" id="bHint"></div></div></div>
+<div id="app" hidden></div>
+<div id="sheet" class="sheet" hidden><div class="panel" id="sheetBody"></div></div>
+<div id="modal" class="sheet modal" hidden><div class="panel" id="modalBody"></div></div>
 <div id="toasts" aria-live="polite"></div>
 <div id="screen"></div>
 
 <script>
-// ---------- content ----------
+// ================= content =================
+const DAYN=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์'], DAYS=['จ','อ','พ','พฤ','ศ'];
 const ROLES={it:{name:'พี่ต้น',dept:'ไอที',i:'🖥️'},acc:{name:'พี่แอน',dept:'บัญชี',i:'🧾'},des:{name:'พี่โบ๊ท',dept:'ดีไซน์',i:'🎨'}};
-const CTX={pc:{i:'💻',n:'โต๊ะคอม',list:'ลิสต์คอม'},phone:{i:'📞',n:'โทรศัพท์',list:'ลิสต์โทร'},walk:{i:'🚶',n:'เดินในออฟฟิศ',list:'ลิสต์เดิน'}};
+const CTX={pc:{i:'💻',n:'คอม',list:'ลิสต์คอม'},phone:{i:'📞',n:'โทร',list:'ลิสต์โทร'},walk:{i:'🚶',n:'เดิน',list:'ลิสต์เดิน'}};
 const P={
-  junk:['อีเมล: ยินดีด้วย! คุณได้รับ iPhone ฟรี','ใบปลิวพิซซ่าเปิดใหม่ ซื้อ 1 แถม 1','อีเมลขายคอร์ส "รวยใน 7 วัน"','แชทลูกโซ่: ส่งต่อ 10 คนแล้วจะโชคดี','แคตตาล็อกเก้าอี้ที่ไม่มีใครสั่ง','จดหมายข่าวร้านที่เคยซื้อครั้งเดียว','คูปองส่วนลดที่หมดอายุไปแล้ว','อีเมล: บัญชีคุณถูกระงับ คลิกด่วน!!'],
-  quick:['ตอบอีเมลฝ่ายขายว่า "ได้รับแล้วครับ"','กดยืนยันเข้ากลุ่มแชททีม','ส่งไฟล์ที่เพื่อนขอ (มีในเครื่องแล้ว)','อนุมัติวันลาของน้องในทีม','ตอบรับนัดกินข้าวเที่ยงกับทีม','กดไลก์โพสต์เปิดตัวสินค้าของบริษัท','ส่งเลขบัญชีให้ฝ่ายบุคคล'],
-  task_pc:[['ทำสไลด์สรุปยอดขายเดือนนี้',3],['เขียนสรุปประชุมเมื่อวาน',2],['อัปเดตตารางสต็อกสินค้า',2],['ตรวจคำผิดในโบรชัวร์ใหม่',2],['ร่างอีเมลเสนอราคาให้ลูกค้า',2],['จัดโฟลเดอร์ไฟล์โปรเจกต์ให้เป็นระเบียบ',3]],
-  task_phone:[['โทรจองห้องประชุมที่โรงแรม',2],['โทรเลื่อนนัดช่างแอร์',1],['โทรถามที่อยู่จัดส่งกับลูกค้า',1],['โทรคุยรายละเอียดกับซัพพลายเออร์',2]],
-  task_walk:[['เดินไปขอลายเซ็นผู้จัดการ',1],['ไปหยิบกระดาษ A4 ที่ห้องเก็บของ',1],['เอาเอกสารไปส่งฝ่ายบุคคล',1],['แวะคุยงานกับทีมชั้นล่าง',2]],
-  deleg:[['เครื่องพิมพ์ชั้น 3 กระดาษติดอีกแล้ว','it'],['Wi-Fi ห้องประชุมหลุดทุก 5 นาที','it'],['คอมเครื่องใหม่ยังไม่ได้ลงโปรแกรม','it'],['ใบเสร็จค่าแท็กซี่รอเบิกเงิน','acc'],['ลูกค้าขอใบกำกับภาษีฉบับใหม่','acc'],['เช็กยอดโอนที่ลูกค้าแจ้งมา','acc'],['ขอไฟล์โลโก้ขนาดใหญ่ไปทำป้าย','des'],['ปกรายงานประจำปีต้องออกแบบใหม่','des'],['แบนเนอร์หน้าเว็บต้องเปลี่ยนสี','des']],
-  info:[['รหัส Wi-Fi แขก: guest-2026','แขกมาถึงแล้ว ขอรหัส Wi-Fi หน่อย'],['เบอร์ช่างแอร์ประจำตึก','แอร์ห้องประชุมเสีย! ใครมีเบอร์ช่าง?'],['วิธีแก้ไฟแดงเครื่องถ่ายเอกสาร','เครื่องถ่ายเอกสารขึ้นไฟแดง ทำยังไงดี?'],['ขนาดโลโก้มาตรฐานของบริษัท','ฝ่ายดีไซน์ถามขนาดโลโก้ที่ถูกต้อง'],['รายชื่อผู้ติดต่อฝั่งลูกค้า','ต้องใช้เบอร์ผู้ติดต่อลูกค้าด่วน!'],['ระเบียบการเบิกค่าเดินทาง','น้องใหม่ถามว่าเบิกค่าแท็กซี่ยังไง'],['รหัสเข้าห้องเก็บของ: 4417','ห้องเก็บของล็อก ใครรู้รหัสบ้าง?']],
-  meeting:['ประชุมทีมประจำสัปดาห์','นัดคุยงานกับหัวหน้า','วิดีโอคอลกับลูกค้า','อบรมหนีไฟประจำปี','พรีเซนต์งานให้ผู้บริหาร'],
+  junk:['ยินดีด้วย! คุณได้รับ iPhone ฟรี','ใบปลิวพิซซ่าเปิดใหม่ ซื้อ 1 แถม 1','อีเมลขายคอร์ส "รวยใน 7 วัน"','แชทลูกโซ่ ส่งต่อ 10 คนจะโชคดี','แคตตาล็อกเก้าอี้ที่ไม่มีใครสั่ง','จดหมายข่าวร้านที่เคยซื้อครั้งเดียว','คูปองส่วนลดที่หมดอายุแล้ว'],
+  quick:['ตอบอีเมลฝ่ายขายว่า "ได้รับแล้วครับ"','กดยืนยันเข้ากลุ่มแชททีม','ส่งไฟล์ที่เพื่อนขอ (มีในเครื่องแล้ว)','อนุมัติวันลาของน้องในทีม','ตอบรับนัดกินข้าวเที่ยงกับทีม','ส่งเลขบัญชีให้ฝ่ายบุคคล','ต่ออายุรหัสผ่านอีเมล'],
+  task:[['ทำสไลด์สรุปยอดขายเดือนนี้','pc',60,1],['เขียนสรุปประชุมเมื่อวาน','pc',30,0],['อัปเดตตารางสต็อกสินค้า','pc',30,0],['ตรวจคำผิดในโบรชัวร์ใหม่','pc',15,0],['ร่างอีเมลเสนอราคาให้ลูกค้า','pc',30,1],['วิเคราะห์ยอดขายรายไตรมาส','pc',60,1],['จัดโฟลเดอร์ไฟล์โปรเจกต์','pc',15,0],
+    ['โทรจองห้องประชุมที่โรงแรม','phone',15,0],['โทรเลื่อนนัดช่างแอร์','phone',15,0],['โทรตามลูกค้าที่ค้างจ่าย','phone',30,1],['โทรคุยสเปกกับซัพพลายเออร์','phone',30,1],
+    ['เดินไปขอลายเซ็นผู้จัดการ','walk',15,0],['ไปหยิบกระดาษที่ห้องเก็บของ','walk',15,0],['เอาเอกสารไปส่งฝ่ายบุคคล','walk',15,0],['ไปคุยแก้ปัญหากับทีมชั้นล่าง','walk',30,1]],
+  deleg:[['เครื่องพิมพ์ชั้น 3 กระดาษติดอีกแล้ว','it'],['Wi-Fi ห้องประชุมหลุดบ่อย','it'],['คอมเครื่องใหม่ยังไม่ได้ลงโปรแกรม','it'],['ใบเสร็จค่าแท็กซี่รอเบิก','acc'],['ลูกค้าขอใบกำกับภาษีใหม่','acc'],['เช็กยอดโอนที่ลูกค้าแจ้งมา','acc'],['ขอไฟล์โลโก้ขนาดใหญ่ทำป้าย','des'],['ปกรายงานประจำปีต้องออกแบบใหม่','des'],['แบนเนอร์หน้าเว็บต้องเปลี่ยนสี','des']],
+  info:[['รหัส Wi-Fi แขก: guest-2026','แขกมาถึงแล้ว ขอรหัส Wi-Fi หน่อย'],['เบอร์ช่างแอร์ประจำตึก','แอร์ห้องประชุมเสีย ใครมีเบอร์ช่าง?'],['วิธีแก้ไฟแดงเครื่องถ่ายเอกสาร','เครื่องถ่ายเอกสารขึ้นไฟแดง ทำไงดี?'],['ขนาดโลโก้มาตรฐานของบริษัท','ฝ่ายดีไซน์ถามขนาดโลโก้ที่ถูกต้อง'],['รายชื่อผู้ติดต่อฝั่งลูกค้า','ขอเบอร์ผู้ติดต่อลูกค้าด่วน!'],['ระเบียบการเบิกค่าเดินทาง','น้องใหม่ถามว่าเบิกค่าแท็กซี่ยังไง'],['รหัสห้องเก็บของ: 4417','ห้องเก็บของล็อก ใครรู้รหัสบ้าง?']],
+  meeting:['ประชุมทีมประจำสัปดาห์','คุยงานกับหัวหน้า','วิดีโอคอลกับลูกค้า','อบรมหนีไฟประจำปี','พรีเซนต์งานให้ผู้บริหาร'],
   idea:['ไอเดีย: วางต้นไม้ทั่วออฟฟิศ','อยากลองเรียนภาษาญี่ปุ่นสักวัน','ไอเดีย: ปาร์ตี้ปีใหม่ธีมย้อนยุค','น่าจะมีมุมกาแฟดี ๆ สักมุม','ไอเดีย: ทำพอดแคสต์ของบริษัท','อยากจัดทริปทีมไปทะเล'],
+  thought:['เอ๊ะ ยังไม่ได้ตอบแชทพี่แอน','ลืมบอกยามว่าวันนี้กลับดึก','ต้องซื้อของขวัญวันเกิดเพื่อนร่วมทีม','ยังไม่ได้ส่งใบลาของวันศุกร์หน้า','จำได้ว่าต้องต่อประกันรถ'],
 };
 const CLIENTS=[
-  {name:'ร้านกาแฟดอยหลวง',need:'อยากได้เมนูใหม่ทั้งร้าน',steps:[['โทรถามว่าอยากได้เมนูแบบไหน','phone',1],['ร่างเมนูใหม่ในคอม','pc',2],['เอาแบบไปให้ผู้จัดการเซ็นอนุมัติ','walk',1],['ส่งไฟล์เมนูให้ลูกค้า','pc',1]]},
-  {name:'คลินิกฟันยิ้มใส',need:'อยากได้ใบปลิวโปรโมชัน',steps:[['โทรเก็บรายละเอียดโปรโมชัน','phone',1],['เขียนข้อความในใบปลิว','pc',2],['เดินไปคุยกับฝ่ายพิมพ์','walk',1],['อีเมลตัวอย่างให้ลูกค้าตรวจ','pc',1]]},
-  {name:'โรงแรมริมโขง',need:'อยากจัดงานสัมมนาประจำปี',steps:[['โทรเช็กวันว่างห้องจัดเลี้ยง','phone',1],['ทำตารางกำหนดการในคอม','pc',2],['โทรยืนยันกับวิทยากร','phone',1],['เดินไปแจ้งทีมเรื่องวันงาน','walk',1]]},
+  {name:'ร้านกาแฟดอยหลวง',need:'อยากได้เมนูใหม่ทั้งร้าน',steps:[['โทรถามว่าอยากได้เมนูแบบไหน','phone',15,0],['ร่างเมนูใหม่ในคอม','pc',60,1],['เอาแบบไปให้ผู้จัดการอนุมัติ','walk',15,0],['ส่งไฟล์เมนูให้ลูกค้า','pc',15,0]]},
+  {name:'คลินิกฟันยิ้มใส',need:'อยากได้ใบปลิวโปรโมชัน',steps:[['โทรเก็บรายละเอียดโปรโมชัน','phone',15,0],['เขียนข้อความในใบปลิว','pc',30,1],['เดินไปคุยกับฝ่ายพิมพ์','walk',15,0],['อีเมลตัวอย่างให้ลูกค้าตรวจ','pc',15,0]]},
+  {name:'โรงแรมริมโขง',need:'อยากจัดงานสัมมนาประจำปี',steps:[['โทรเช็กวันว่างห้องจัดเลี้ยง','phone',15,0],['ทำตารางกำหนดการ','pc',60,1],['โทรยืนยันกับวิทยากร','phone',15,0],['เดินไปแจ้งทีมเรื่องวันงาน','walk',15,0]]},
+  {name:'ร้านหนังสือมุมสงบ',need:'อยากทำแคมเปญลดราคา',steps:[['โทรคุยเป้าหมายแคมเปญ','phone',30,0],['ออกแบบโพสต์ขายในคอม','pc',60,1],['ไปขออนุมัติงบจากผู้จัดการ','walk',15,0],['ตั้งเวลาโพสต์ทั้งหมด','pc',15,0]]},
 ];
-const DAYS=[
-  {name:'จันทร์',len:110,spawn:5.4,unlock:['trash','now','pc'],kinds:{junk:3,quick:4,task_pc:4},
-   who:'พี่นุ่น · หัวหน้าทีม',hello:'ยินดีต้อนรับน้องใหม่! ทุกอย่างที่ส่งถึงเราจะลงถาดนี้ แตะแต่ละแผ่นแล้วตัดสินใจว่าจะทำอะไรกับมัน',
-   tips:[['🗑️','โฆษณา สแปม ของไร้สาระ ทิ้งได้เลย'],['⚡','เรื่องจิ๊บ ๆ ที่เสร็จในพริบตา ทำเลย'],['💻','งานที่ต้องนั่งทำนาน อย่าเพิ่งลงมือ ใส่ลิสต์ไว้ แล้วค่อยแตะทำทีหลัง'],['😬','ถาดรกเมื่อไหร่ หัวก็ตื้อ ความเครียดขึ้นเรื่อย ๆ']]},
-  {name:'อังคาร',len:120,spawn:5,unlock:['trash','now','pc','deleg','cab'],kinds:{junk:2,quick:3,task_pc:3,deleg:3,info:3},
-   who:'พี่นุ่น · หัวหน้าทีม',hello:'เมื่อวานรอดมาได้ เก่งมาก! วันนี้มีของใหม่สองอย่าง',
-   tips:[['🤝','งานที่ไม่ใช่ของเรา ส่งให้คนที่ถนัด พี่ต้นไอที พี่แอนบัญชี พี่โบ๊ทดีไซน์ แล้วคอยดูด้วยว่าเขาเงียบไปหรือเปล่า'],['🗄️','ข้อมูลที่ไม่ต้องทำอะไร แต่วันหนึ่งอาจต้องใช้ เก็บเข้าตู้ไว้'],['❓','พอมีคนมาถาม ถ้าเก็บไว้ในตู้ จะหาเจอทันที']]},
-  {name:'พุธ',len:130,spawn:4.7,unlock:['trash','now','pc','phone','walk','deleg','cab','cal'],kinds:{junk:2,quick:3,task_pc:2,task_phone:2,task_walk:2,deleg:2,info:2,meeting:1.6},
-   who:'พี่นุ่น · หัวหน้าทีม',hello:'วันนี้ต้องลุกจากโต๊ะบ้างแล้ว',
-   tips:[['📞','งานโทร งานคอม งานเดิน ทำได้เฉพาะตอนอยู่ที่นั่น ย้ายที่ทีเสียเวลาที ทำรวดเดียวให้คุ้ม'],['📅','นัดที่มีเวลาชัดเจน ลงปฏิทินไว้ ถึงเวลาแล้วมันจะเตือนเอง'],['⏰','นัดที่ไม่ได้ลงปฏิทิน… ลืมแน่นอน']]},
-  {name:'พฤหัส',len:140,spawn:4.6,unlock:['trash','now','pc','phone','walk','deleg','cab','cal','drawer','client'],kinds:{junk:2,quick:3,task_pc:2,task_phone:1.5,task_walk:1.5,deleg:2,info:2,meeting:1.4,idea:2},
-   clients:[[.12,0],[.45,1]],tickler:true,
-   who:'พี่นุ่น · หัวหน้าทีม',hello:'ลูกค้าใหญ่มาแล้ว! งานลูกค้ามีหลายขั้น ต้องดูแลกันยาว ๆ',
-   tips:[['📁','ลูกค้าใหม่ เปิดแฟ้มไว้ งานจะมาทีละขั้น ทำเสร็จหนึ่งขั้น ขั้นต่อไปจะตามมา'],['😠','ถ้าขั้นต่อไปค้างอยู่ในถาด ไม่มีใครลงมือ ลูกค้าจะหงุดหงิดขึ้นเรื่อย ๆ'],['🌙','ไอเดียดี ๆ ที่ยังไม่ต้องทำตอนนี้ เก็บไว้ในลิ้นชัก บางอันมีวันของมันเอง']]},
-  {name:'ศุกร์',len:140,spawn:4.3,unlock:['trash','now','pc','phone','walk','deleg','cab','cal','drawer','client'],kinds:{junk:2,quick:3,task_pc:2,task_phone:1.5,task_walk:1.5,deleg:2,info:2,meeting:1.4,idea:2},
-   clients:[[.1,2]],review:true,
-   who:'พี่นุ่น · หัวหน้าทีม',hello:'ศุกร์แล้ว! วันสุดท้ายของสัปดาห์แรก ตั้งใจอีกนิด',
-   tips:[['🌙','ก่อนกลับบ้านเย็นนี้ เปิดลิ้นชักดูไอเดียที่เก็บไว้ทั้งสัปดาห์ด้วยนะ'],['🧹','โต๊ะว่าง ใจก็ว่าง เคลียร์ให้หมดก่อนเสาร์อาทิตย์']]},
+const SENDERS=['📧 อีเมลจากหัวหน้า','💬 แชทจากเพื่อนร่วมงาน','📄 เอกสารวางบนโต๊ะ','📧 อีเมลจากข้างนอก','📝 โน้ตแปะจอ'];
+const PERKS={
+  coffee:['☕','เครื่องชงกาแฟ','พักสั้นได้แรงเพิ่มอีก 10'],
+  phones:['🎧','หูฟังตัดเสียง','งานคอมเร็วขึ้น 20%'],
+  mobile:['📱','มือถือใหม่','งานโทรเร็วขึ้น 20%'],
+  shoes:['👟','รองเท้าผ้าใบ','งานเดินเร็วขึ้น 20% ย้ายที่ใช้แค่ 5 นาที'],
+  lunch:['🥗','ข้าวกล่องสุขภาพ','พักเที่ยงได้แรงเพิ่มอีก 20'],
+  early:['🌅','นกตัวแรก','เริ่มงาน 08:30 ได้เวลาเพิ่มครึ่งชั่วโมง'],
+  cabinet:['🗂️','ตู้เอกสารติดป้าย','หาของในตู้ไม่เสียเวลา และตอบคำถามได้แต้มเพิ่ม'],
+  buddy:['🤝','เพื่อนร่วมงานใจดี','งานที่ฝากไว้เสร็จเร็วขึ้นและไม่ค่อยเงียบหาย'],
+  plant:['🪴','ต้นไม้บนโต๊ะ','เริ่มวันด้วยแรง 110'],
+};
+const RANKS=[[0,'เด็กฝึกงาน'],[8,'พนักงานใหม่'],[20,'พนักงาน'],[38,'พนักงานอาวุโส'],[60,'หัวหน้าทีม'],[90,'ผู้จัดการ'],[130,'ผู้อำนวยการ'],[180,'ตำนานโต๊ะว่าง']];
+const UNL=[['trash','now','pc'],['deleg','cab'],['phone','walk','cal'],['drawer','client','capture'],['review']];
+const TUT=[
+  {hello:'ยินดีต้อนรับ! ที่นี่ไม่ต้องรีบ นาฬิกาเดินเฉพาะตอนเราลงมือทำอะไรเท่านั้น ค่อย ๆ คิดได้เลย',tips:[
+    ['📥','ของจะเข้าถาดเป็นรอบ ๆ ยังไม่ต้องรีบเปิดทุกแผ่น แต่บางแผ่นมีกำหนดส่งซ่อนอยู่ข้างใน'],
+    ['🗂️','กด "เคลียร์ถาด" เปิดดูทีละแผ่น แผ่นละ 2 นาที ขยะทิ้ง เรื่องสั้นแค่ 2 นาทีทำเลย งานยาวใส่ลิสต์'],
+    ['⏱️','เริ่มงานจากลิสต์แต่ละชิ้นต้องตั้งหลัก 5 นาที เรื่องจิ๊บ ๆ เลยทำไปตอนเปิดเจอคุ้มกว่า'],
+    ['🔋','แรงลดลงตลอดวัน งานหนักทำตอนแรงยังดี ถ้าเหนื่อยจะช้าลง พักเที่ยงแล้วแรงจะฟื้น']]},
+  {hello:'วันนี้มีเพื่อนร่วมทีมมาช่วยแล้ว',tips:[
+    ['🤝','งานที่ไม่ใช่ของเรา ส่งต่อให้คนถนัด พี่ต้นไอที พี่แอนบัญชี พี่โบ๊ทดีไซน์ ทำเองก็ได้ แต่ใช้เวลาทั้งชั่วโมง'],
+    ['💤','บางคนรับงานแล้วเงียบ เปิดดู "รอคนอื่น" แล้วทวงสักหน่อย'],
+    ['🗄️','ข้อมูลที่ไม่ต้องทำอะไร แต่อาจต้องใช้ เก็บเข้าตู้ไว้ วันหนึ่งจะมีคนมาถาม']]},
+  {hello:'วันนี้เริ่มมีงานนอกโต๊ะคอมแล้ว',tips:[
+    ['📞','งานโทร งานคอม งานเดิน ทำได้เฉพาะตอนอยู่ที่นั่น ย้ายที่ทีละ 10 นาที ทำรวดเดียวให้คุ้ม'],
+    ['📅','นัดที่มีเวลาชัดเจน ลงปฏิทินไว้ ถึงเวลาแล้วจะเตือน นัดที่ไม่ได้ลงไว้… ลืมแน่นอน'],
+    ['⏩','ถ้านัดใกล้ถึงแล้ว กดไปรอที่ห้องประชุมได้เลย ดีกว่าเริ่มงานยาวแล้วไปสาย']]},
+  {hello:'ลูกค้าใหญ่มาแล้ว! และวันนี้จะได้ลองเก็บความคิดด้วย',tips:[
+    ['📁','งานลูกค้ามีหลายขั้น ทำเสร็จหนึ่งขั้น ต้องตัดสินใจขั้นต่อไปทันที ถ้าไม่มีขั้นไหนเดินอยู่ ลูกค้าจะหงุดหงิด'],
+    ['💭','ระหว่างทำงานอาจนึกเรื่องอื่นขึ้นมา จดลงถาดไว้ก่อน ไม่ต้องหยุดงานที่ทำอยู่'],
+    ['🌙','ไอเดียดี ๆ ที่ยังไม่ต้องทำ เก็บลิ้นชักไว้ก่อน บางอันมีวันของมันเอง']]},
+  {hello:'ศุกร์แล้ว! วันนี้มีช่วงพิเศษตอนบ่าย',tips:[
+    ['🔍','ตั้งแต่บ่ายสาม เปิด "ทบทวนประจำสัปดาห์" ได้ ใช้เวลา 1 ชั่วโมง'],
+    ['🎁','ยิ่งโต๊ะเรียบร้อย ถาดว่าง ไม่มีงานไหนค้างเงียบ ยิ่งได้เลือกของดี ๆ ไว้ใช้สัปดาห์หน้า'],
+    ['♾️','หลังจากนี้ทุกอย่างเปิดหมด เล่นต่อไปเรื่อย ๆ ได้ ไต่ตำแหน่งกันยาว ๆ']]},
 ];
-const DEST=[
-  ['trash','🗑️','ทิ้ง'],['now','⚡','ทำเลย'],['pc','💻','ลิสต์คอม'],['phone','📞','ลิสต์โทร'],['walk','🚶','ลิสต์เดิน'],
-  ['deleg','🤝','ส่งต่อ…'],['cal','📅','ลงปฏิทิน'],['cab','🗄️','เก็บเข้าตู้'],['drawer','🌙','ลิ้นชัก'],['client','📁','เปิดแฟ้ม']];
-const SRC={junk:['📧 อีเมล','📄 จดหมาย','💬 แชท'],quick:['📧 อีเมล','💬 แชท'],task:['📝 โน้ต','📧 อีเมล'],deleg:['💬 แชท','📝 โน้ต','📧 อีเมล'],
-  info:['📄 เอกสาร','📌 ประกาศ','📧 อีเมล'],meeting:['📧 อีเมล','💬 แชท'],idea:['📝 โน้ต','💬 แชท'],client:['📨 ลูกค้าใหม่'],step:['📁 แฟ้มลูกค้า']};
-const DOTS=n=>'●'.repeat(n)+'○'.repeat(Math.max(0,3-n));
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt=m=>{m=Math.floor(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const fmt=m=>{m=Math.round(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const $=id=>document.getElementById(id);
+const dur=m=>m>=60?(m/60)+' ชม.':m+' นาที';
 
-// ---------- state ----------
-let S=null, snap=null, uid=1, dirty=true, openSheet=null;
-function fresh(){return{day:0,min:540,elapsed:0,phase:'title',score:0,stress:8,tray:[],lists:{pc:[],phone:[],walk:[]},waiting:[],calendar:[],cabinet:[],drawer:[],
-  clients:[],mode:'pc',job:null,block:null,alerts:[],sched:[],returns:[],spawnT:1.2,fired:[],paused:false,dayStart:0,potential:0,drawerSeen:false,week:[],used:{},uid:1}}
-const cfg=()=>DAYS[S.day];
-const has=u=>cfg().unlock.includes(u);
-const mps=()=>540/cfg().len;
-function save(){try{localStorage.setItem('office-chaos-v1',JSON.stringify(S))}catch(e){}}
-function load(){try{const j=localStorage.getItem('office-chaos-v1');return j?JSON.parse(j):null}catch(e){return null}}
-function id(){return S.uid++}
+// ================= state =================
+let S=null;
+function fresh(){return{week:1,day:0,min:540,energy:100,score:0,stars:0,dayPts:0,dayPot:0,tray:[],lists:{pc:[],phone:[],walk:[]},mode:'pc',
+  waiting:[],calendar:[],cabinet:[],drawer:[],clients:[],ev:[],pop:[],perks:[],week_log:[],used:{},uid:1,reviewed:false,reviewQ:0,clar:null,phase:'title',nextClient:0}}
+const id=()=>S.uid++;
+const has=u=>S.week>1||UNL.slice(0,S.day+1).flat().includes(u);
+const perk=p=>S.perks.includes(p);
+const rankIdx=()=>{let r=0;RANKS.forEach(([n],i)=>{if(S.stars>=n)r=i});return r};
+function save(){try{localStorage.setItem('toh-wang-v1',JSON.stringify(S))}catch(e){}}
+function load(){try{const j=localStorage.getItem('toh-wang-v1');return j?JSON.parse(j):null}catch(e){return null}}
 
-// ---------- item factory ----------
-function pick(kind){
-  const pool=P[kind]; const used=S.used[kind]||(S.used[kind]=[]);
-  let choices=pool.map((_,i)=>i).filter(i=>!used.includes(i)); if(!choices.length){S.used[kind]=[];choices=pool.map((_,i)=>i)}
-  const i=rnd(choices); S.used[kind].push(i); return pool[i];
+// ================= items =================
+function pick(k){const pool=P[k],u=S.used[k]||(S.used[k]=[]);let c=pool.map((_,i)=>i).filter(i=>!u.includes(i));if(!c.length){S.used[k]=[];c=pool.map((_,i)=>i)}const i=rnd(c);S.used[k].push(i);return pool[i]}
+function kinds(){const k={junk:2,quick:3,task:4};if(has('deleg'))k.deleg=2;if(has('cab'))k.info=1.5;if(has('cal'))k.meeting=1.2;if(has('drawer'))k.idea=1.2;return k}
+function gen(kind){
+  if(!kind){const k=kinds(),t=Object.values(k).reduce((a,b)=>a+b,0);let r=Math.random()*t;kind='quick';for(const [n,w] of Object.entries(k))if((r-=w)<=0){kind=n;break}}
+  const it={id:id(),kind,color:rnd(['','','c2','c3']),sender:rnd(SENDERS)};
+  if(kind==='junk')it.title=pick('junk'),it.sender=rnd(['📧 อีเมลจากข้างนอก','📄 เอกสารวางบนโต๊ะ','💬 แชทจากเพื่อนร่วมงาน']);
+  if(kind==='quick')Object.assign(it,{title:pick('quick'),ctx:'pc',dur:2});
+  if(kind==='task'){let t;do t=pick('task');while(!has(t[1]));Object.assign(it,{title:t[0],ctx:t[1],dur:t[2],heavy:!!t[3]});
+    if(Math.random()<.4){const due=Math.ceil((S.min+180+Math.random()*150)/30)*30;if(due<=1050){it.due=due;it.sender='📧 อีเมลจากหัวหน้า'}}}
+  if(kind==='deleg'){const [t,r]=pick('deleg');Object.assign(it,{title:t,role:r,ctx:'pc',dur:60,heavy:true})}
+  if(kind==='info'){const [t,q]=pick('info');Object.assign(it,{title:t,q});sched(S.min+120+Math.random()*180,'q',{id:it.id,q})}
+  if(kind==='meeting'){const t=Math.ceil((S.min+100+Math.random()*120)/30)*30;if(t>1020)return gen('quick');
+    Object.assign(it,{title:pick('meeting'),time:t});sched(t,'meet',{id:it.id})}
+  if(kind==='idea'){Object.assign(it,{title:pick('idea'),ctx:'pc',dur:60,heavy:true});
+    if(S.day<4&&Math.random()<.25){it.title='ประกาศ: สัมมนาฟรี เปิดรับสมัครวัน'+DAYN[S.day+1];it.returnDay=S.day+1;it.becomes='สมัครสัมมนาฟรี (เปิดรับวันนี้!)'}}
+  S.dayPot+=valueOf(it);return it;
 }
-function make(kind){
-  const it={id:id(),color:rnd(['','','c2','c3'])};
-  if(kind==='junk'){Object.assign(it,{kind,title:pick('junk')})}
-  else if(kind==='quick'){Object.assign(it,{kind,title:pick('quick'),ctx:'pc',size:1})}
-  else if(kind.startsWith('task_')){const [t,s]=pick(kind);Object.assign(it,{kind:'task',title:t,ctx:kind.slice(5),size:s})}
-  else if(kind==='deleg'){const [t,r]=pick('deleg');Object.assign(it,{kind,title:t,role:r,ctx:'pc',size:4})}
-  else if(kind==='info'){const [t,q]=pick('info');Object.assign(it,{kind,title:t,q})
-    let d=S.day,m=S.min+80+Math.random()*90; if(m>1030){d++;m=570+Math.random()*120}
-    S.sched.push({type:'q',day:d,min:m,itemId:it.id,q})}
-  else if(kind==='meeting'){let t=Math.ceil((S.min+90+Math.random()*60)/30)*30; if(t>1020) return make('quick');
-    Object.assign(it,{kind,title:pick('meeting')+' · '+fmt(t),time:t}); S.sched.push({type:'meet',day:S.day,min:t,itemId:it.id})}
-  else if(kind==='idea'){Object.assign(it,{kind,title:pick('idea'),ctx:'pc',size:3})}
-  it.src=rnd(SRC[it.kind==='task'?'task':it.kind]); it.born=S.elapsed;
-  return it;
-}
-const VALUE={junk:3,quick:12,deleg:20,info:18,meeting:18,idea:3};
-function potentialOf(it){return it.kind==='task'?it.size*10+2:it.kind==='client'?133:(VALUE[it.kind]||0)}
-function addToTray(it,front){
-  if(S.tray.length>=8){S.stress+=6;S.score-=5;toast('ถาดล้น! เอกสารหล่นหายไปแผ่นหนึ่ง','bad');shake('trayBox');return}
-  front?S.tray.unshift(it):S.tray.push(it); dirty=true;
-}
-function spawnRandom(){
-  const k=cfg().kinds; const tot=Object.values(k).reduce((a,b)=>a+b,0); let r=Math.random()*tot, kind='quick';
-  for(const [n,w] of Object.entries(k)){if((r-=w)<=0){kind=n;break}}
-  const it=make(kind); S.potential+=potentialOf(it); addToTray(it);
-}
-function spawnClient(ci){
-  const c=CLIENTS[ci]; const it={id:id(),kind:'client',ci,title:`${c.name}: ${c.need}`,src:SRC.client[0],color:'c3'};
-  S.potential+=potentialOf(it); addToTray(it,true);
-}
-function stepItem(c){const [t,ctx,size]=c.steps[c.idx];return{id:id(),kind:'step',clientId:c.id,title:t,tag:c.name,ctx,size,src:SRC.step[0],color:'c3'}}
+function valueOf(it){return{junk:2,quick:6,deleg:14,info:14,meeting:15,idea:3,step:10,client:80}[it.kind]??(it.dur/15*6+(it.heavy?4:0)+(it.due?10:0))}
+function sched(at,type,data){S.ev.push({at,type,...data})}
+function spawnClient(){const c=CLIENTS[S.nextClient%CLIENTS.length];S.nextClient++;
+  const it={id:id(),kind:'client',ci:(S.nextClient-1)%CLIENTS.length,title:`${c.name}: ${c.need}`,sender:'📨 ลูกค้าใหม่',color:'c3'};S.dayPot+=80;S.tray.push(it)}
+function stepItem(c){const [t,ctx,d,h]=c.steps[c.idx];return{id:id(),kind:'step',clientId:c.id,title:t,tag:c.name,ctx,dur:d,heavy:!!h,opened:true,color:'c3',sender:'📁 แฟ้มลูกค้า'}}
 
-// ---------- actions ----------
-function toast(msg,kind=''){const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;$('toasts').appendChild(d);
-  setTimeout(()=>d.remove(),2300); while($('toasts').children.length>3)$('toasts').firstChild.remove()}
-function shake(el){const e=$(el);if(!e)return;e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake')}
-function gain(n,msg){S.score+=n;S.stress=Math.max(0,S.stress-1.5);toast((msg?msg+' ':'')+'+'+n,'good')}
-function lose(pts,st,msg){S.score-=pts;S.stress+=st;toast(msg+(pts?' −'+pts:''),'bad')}
-function misfit(it,msg){S.tray.unshift(it);S.stress+=2;toast(msg,'warn');dirty=true}
-function block(sec,it,label,done,hint){if(openSheet&&!openSheet.pause)closeSheet();S.block={t:sec,total:sec,title:it?it.title:'',label,done,hint:hint||''};dirty=true}
-function scheduleComplaint(it){let d=S.day,m=S.min+60+Math.random()*50;if(m>1040){d++;m=580+Math.random()*90}S.sched.push({type:'complain',day:d,min:m,title:it.title})}
+// ================= time =================
+function toast(msg,kind=''){const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;$('toasts').appendChild(d);setTimeout(()=>d.remove(),2700);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
+function gain(n,msg){S.score+=n;S.dayPts+=n;toast(msg+' +'+Math.round(n),'good')}
+function lose(n,msg){S.score-=n;S.dayPts-=n;toast(msg+' −'+n,'bad')}
+function advance(m){
+  const end=S.min+m;
+  for(;;){const due=S.ev.filter(e=>e.at<=end).sort((a,b)=>a.at-b.at)[0];if(!due)break;S.ev=S.ev.filter(e=>e!==due);S.min=Math.max(S.min,due.at);fire(due)}
+  // clients get restless while nothing of theirs is moving
+  for(const c of S.clients){if(c.done||c.gone)continue;if(!inMotion(c)){c.mood-=m*8/60;if(c.mood<=0){c.gone=true;lose(15,`${c.name}เปลี่ยนไปจ้างที่อื่นแล้ว`);S.tray=S.tray.filter(x=>x.clientId!==c.id);for(const k in S.lists)S.lists[k]=S.lists[k].filter(x=>x.clientId!==c.id)}}else c.mood=Math.min(100,c.mood+m/6)}
+  S.min=end;
+  for(const it of allTasks())if(it.due&&!it.late&&S.min>it.due){it.late=true;
+    if(!it.opened&&S.tray.includes(it)){it.opened=true;lose(10,'หัวหน้าทวง: งานที่ส่งมาเมื่อเช้าเลยกำหนดแล้ว!')}else lose(10,`เลยกำหนด: ${it.title}`)}
+}
+function allTasks(){return[...S.tray,...Object.values(S.lists).flat()]}
+function fire(e){
+  if(e.type==='mail'){const n=e.n;for(let i=0;i<n;i++)S.tray.push(gen());toast(`📬 จดหมายรอบใหม่ ${n} แผ่น`)}
+  if(e.type==='client'){if(has('client'))spawnClient(),toast('📨 มีลูกค้าใหม่ติดต่อมา')}
+  if(e.type==='lunch')S.pop.push({type:'lunch'});
+  if(e.type==='meet'){const it=S.calendar.find(x=>x.id===e.id);
+    if(it)S.pop.push({type:'meet',id:e.id,title:it.title,start:e.at});
+    else{const t=S.tray.find(x=>x.id===e.id);S.tray=S.tray.filter(x=>x.id!==e.id);lose(10,t&&!t.opened?'มีนัดที่ซ่อนอยู่ในถาด พลาดไปแล้ว':'พลาดนัด! ไม่ได้ลงปฏิทินไว้')}}
+  if(e.type==='q')S.pop.push({type:'q',id:e.id,q:e.q});
+  if(e.type==='ret'){const w=S.waiting.find(w=>w.item.id===e.id);if(!w)return;
+    if(w.willStale){w.willStale=false;w.stale=true;sched(e.at+240,'lost',{id:e.id});toast(`💤 ${ROLES[w.role].name}เงียบไปเลยเรื่อง "${w.item.title}"`,'warn')}
+    else{S.waiting=S.waiting.filter(x=>x!==w);gain(14,`${ROLES[w.role].name}: ${w.item.title} เรียบร้อย`)}}
+  if(e.type==='lost'){const w=S.waiting.find(w=>w.item.id===e.id);if(w&&w.stale){S.waiting=S.waiting.filter(x=>x!==w);lose(8,`${ROLES[w.role].name}ลืมเรื่อง "${w.item.title}" ไปแล้ว`)}}
+  if(e.type==='complain')lose(8,`หัวหน้า: เรื่อง "${e.title}" ไปถึงไหนแล้ว?`);
+  if(e.type==='back'){S.tray.push(e.item);toast(e.msg,'warn')}
+}
+function inMotion(c){const f=x=>x.kind==='step'&&x.clientId===c.id;return Object.values(S.lists).some(l=>l.some(f))||S.waiting.some(w=>f(w.item))}
+function stalled(){return S.clients.filter(c=>!c.done&&!c.gone&&!inMotion(c))}
+function speed(ctx){return(ctx==='pc'&&perk('phones'))||(ctx==='phone'&&perk('mobile'))||(ctx==='walk'&&perk('shoes'))?.8:1}
+function workTime(it,fromList){let t=it.dur*speed(it.ctx);if(it.heavy&&S.energy<35)t*=1.5;return Math.round(t+(fromList?5:0))}
+function drain(it){S.energy=Math.max(0,S.energy-(it.heavy?it.dur/15*6:it.dur/15*2))}
 
+// ================= actions =================
+function doWork(it,fromList){
+  const t=workTime(it,fromList);drain(it);advance(t);complete(it);
+  if(has('capture')&&it.dur>=30&&Math.random()<.4)S.pop.push({type:'thought',title:pick('thought')});
+}
+function complete(it){
+  let p=it.value??valueOf(it);if(it.due)p-=10;
+  if(it.due&&!it.late){p+=10}
+  if(it.late)p=Math.round(p/2);
+  gain(p,it.late?'เสร็จ (เลยกำหนด)':it.due?'ทันกำหนด!':'เสร็จ!');
+  if(it.kind==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c&&!c.gone){c.idx++;
+    if(c.idx>=c.steps.length){c.done=true;gain(40,`${c.name} ปลื้มมาก งานครบทุกขั้น`)}
+    else S.pop.push({type:'next',clientId:c.id,item:stepItem(c)})}}
+}
+function misfit(it,msg){toast(msg,'warn');return false}
 function route(it,d,role){
   const k=it.kind;
   if(d==='trash'){
-    if(k==='junk')return gain(3,'ทิ้งแล้ว');
-    if(k==='client'){lose(20,10,'ลูกค้าโทรมาต่อว่า ไม่มีใครติดต่อกลับเลย!');return}
-    if(k==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c)c.mood=Math.max(0,c.mood-30);
-      toast(`${it.tag}: งานเราหายไปไหน?!`,'bad');S.returns.push({item:it,t:5,msg:`${it.tag} ทวงงานขั้นนี้กลับมา`});return}
-    if(['quick','task','deleg'].includes(k))scheduleComplaint(it);
-    return toast('ทิ้งแล้ว');
+    if(k==='junk'){gain(2,'ทิ้งแล้ว');return true}
+    if(k==='client'){lose(15,'ลูกค้าโทรมาต่อว่า ไม่มีใครติดต่อกลับเลย');return true}
+    if(k==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c)c.mood-=30;toast(`${it.tag}: ขั้นนี้ยังต้องทำนะ!`,'bad');return false}
+    if(['quick','task','deleg'].includes(k))sched(S.min+120+Math.random()*120,'complain',{title:it.title});
+    toast('ทิ้งแล้ว');return true;
   }
   if(d==='now'){
-    if(k==='junk')return block(1.6,it,'อ่านโฆษณาจนจบ…',()=>{S.score-=3;toast('เสียเวลาไปฟรี ๆ −3','bad')});
-    if(k==='info')return block(1.2,it,'อ่าน…',()=>toast('อ่านจบแล้ว… แต่จะจำได้ไหมนะ'));
+    if(k==='junk'){advance(5);S.score-=2;S.dayPts-=2;toast('อ่านโฆษณาจนจบ เสียเวลาฟรี ๆ −2','bad');return true}
+    if(k==='info'){toast('อ่านแล้ว… แต่จะจำได้ไหมนะ');return true}
     if(k==='meeting')return misfit(it,'ยังไม่ถึงเวลานัดเลย');
-    if(k==='client')return misfit(it,'เรื่องใหญ่ขนาดนี้ทำรวดเดียวไม่จบหรอก');
-    const dur=it.size<=1?1:it.size*2.2;
-    return block(dur,it,'กำลังทำ',()=>complete(it,'now'),it.size>=3?'งานนี้ยาวแฮะ… ถาดเริ่มพูนแล้ว':'');
+    if(k==='client')return misfit(it,'งานใหญ่ขนาดนี้ทำรวดเดียวไม่จบหรอก');
+    if(it.returnDay!=null){advance(10);toast('ยังไม่เปิดรับสมัครเลย ต้องรอวัน'+DAYN[it.returnDay],'warn');return false}
+    doWork(it,false);return true;
   }
   if(CTX[d]){
-    if(k==='junk'){S.score-=3;return toast('ใส่โฆษณาไว้ในลิสต์งาน? ทิ้งไปแล้วกัน −3','bad')}
+    if(k==='junk'){S.score-=2;S.dayPts-=2;toast('ใส่โฆษณาไว้ในลิสต์? ทิ้งให้แล้วกัน −2','bad');return true}
     if(k==='info')return misfit(it,'อันนี้ไม่มีอะไรต้องทำ แค่อาจต้องใช้ทีหลัง');
     if(k==='meeting')return misfit(it,'นัดที่มีเวลาแน่นอน ควรอยู่ที่อื่นนะ');
-    if(k==='client')return misfit(it,'งานลูกค้ามีหลายขั้น ใส่ลิสต์เดียวไม่พอ');
+    if(k==='client')return misfit(it,'งานลูกค้ามีหลายขั้น ต้องเปิดแฟ้มก่อน');
     if(it.ctx!==d)return misfit(it,`งานนี้ทำจาก${CTX[d].n}ไม่ได้นะ`);
-    S.lists[d].push(it);dirty=true;return gain(2,`ใส่${CTX[d].list}แล้ว`);
+    S.lists[d].push(it);toast(`ใส่${CTX[d].list}แล้ว`);return true;
   }
-  if(d==='deleg'){
-    const r=ROLES[role];
-    if(k==='deleg'&&it.role===role){const T=13+Math.random()*8;S.waiting.push({item:it,role,t:T,total:T,willStale:Math.random()<.3,stale:false,staleT:0});dirty=true;return gain(5,`ฝาก${r.name}แล้ว`)}
-    S.stress+=3;S.returns.push({item:it,t:5,msg:`${r.name}: อันนี้ไม่ใช่งานฝ่าย${r.dept}นะ ส่งคืน`});return toast(`ส่งให้${r.name}แล้ว…`);
-  }
-  if(d==='cal'){if(k==='meeting'){S.calendar.push(it);dirty=true;return gain(3,'ลงปฏิทินแล้ว')}return misfit(it,'ไม่มีเวลานัดให้ลงปฏิทินนะ')}
-  if(d==='cab'){if(k==='info'){S.cabinet.push(it);dirty=true;return gain(3,'เก็บเข้าตู้แล้ว')}
-    if(k==='junk'){S.score-=2;return toast('เก็บโฆษณาไว้ทำไมนะ −2','bad')}
-    return misfit(it,'อันนี้ต้องมีคนลงมือ ไม่ใช่แค่เก็บไว้')}
-  if(d==='drawer'){if(k==='idea'){S.drawer.push(it);dirty=true;return gain(3,'เก็บไว้ในลิ้นชัก')}
-    if(k==='junk'){S.score-=2;return toast('ลิ้นชักไม่ใช่ถังขยะนะ −2','bad')}
-    return misfit(it,'อันนี้รอไม่ได้นะ')}
+  if(d==='deleg'){const r=ROLES[role];
+    if(k==='deleg'&&it.role===role){const t=perk('buddy')?60+Math.random()*60:90+Math.random()*90;
+      S.waiting.push({item:it,role,willStale:Math.random()<(perk('buddy')?.1:.3),stale:false});sched(S.min+t,'ret',{id:it.id});toast(`ฝาก${r.name}แล้ว`);return true}
+    sched(S.min+60,'back',{item:it,msg:`${r.name}: อันนี้ไม่ใช่งานฝ่าย${r.dept}นะ ส่งคืน`});toast(`ส่งให้${r.name}แล้ว…`);return true}
+  if(d==='cal'){if(k==='meeting'){S.calendar.push(it);toast('ลงปฏิทินแล้ว');return true}return misfit(it,'ไม่มีเวลานัดให้ลงปฏิทินนะ')}
+  if(d==='cab'){if(k==='info'){S.cabinet.push(it);toast('เก็บเข้าตู้แล้ว');return true}if(k==='junk'){S.score-=2;toast('เก็บโฆษณาไว้ทำไมนะ −2','bad');return true}return misfit(it,'อันนี้ต้องมีคนลงมือ ไม่ใช่แค่เก็บไว้')}
+  if(d==='drawer'){if(k==='idea'){S.drawer.push(it);toast('เก็บไว้ในลิ้นชัก');return true}if(k==='junk'){S.score-=2;toast('ลิ้นชักไม่ใช่ถังขยะ −2','bad');return true}return misfit(it,'อันนี้รอไม่ได้นะ')}
   if(d==='client'){if(k!=='client')return misfit(it,'นี่ไม่ใช่ลูกค้าใหม่');
-    const c={id:id(),ci:it.ci,name:CLIENTS[it.ci].name,steps:CLIENTS[it.ci].steps,idx:0,mood:100,done:false};S.clients.push(c);
-    S.tray.unshift(stepItem(c));dirty=true;return gain(5,'เปิดแฟ้มลูกค้าแล้ว')}
+    const c={id:id(),name:CLIENTS[it.ci].name,steps:CLIENTS[it.ci].steps,idx:0,mood:100};S.clients.push(c);
+    S.pop.push({type:'next',clientId:c.id,item:stepItem(c),first:true});toast('เปิดแฟ้มลูกค้าแล้ว');return true}
 }
-function complete(it,via){
-  let p=it.value??({quick:via==='now'?12:8,task:it.size*10,deleg:10,step:15,idea:3}[it.kind]||0);
-  gain(p,'เสร็จ!');
-  if(it.kind==='step'){const c=S.clients.find(c=>c.id===it.clientId);if(c&&!c.done){c.idx++;
-    if(c.idx>=c.steps.length){c.done=true;S.score+=60;toast(`${c.name} ปลื้มมาก! งานครบทุกขั้น +60`,'good')}
-    else{addToTray(stepItem(c),true);toast(`${c.name}: ขั้นต่อไปมาลงถาดแล้ว`,'warn')}}}
-  dirty=true;
+function after(){
+  if(S.phase!=='play')return;
+  if(S.min<1020&&!S.clar&&Math.random()<.12){S.tray.push(gen());toast('💬 มีเรื่องเข้าถาดเพิ่ม')}
+  if(!S.pop.length&&S.min>=1080){endDay();return}
+  render();
 }
-function inMotion(c){
-  const f=x=>x&&x.kind==='step'&&x.clientId===c.id;
-  return Object.values(S.lists).some(l=>l.some(f))||S.waiting.some(w=>f(w.item));
-}
-function stalled(){return S.clients.filter(c=>!c.done&&!c.gone&&!inMotion(c))}
 
-// ---------- loop ----------
-let last=performance.now();
-function tick(){
-  const now=performance.now();let dt=Math.min(.25,(now-last)/1000);last=now;
-  if(!S||S.paused||!(S.phase==='play'||S.phase==='wrap'))return;
-  if(S.phase==='play'){S.min+=dt*mps();S.elapsed+=dt;if(S.min>=1080){S.min=1080;enterWrap()}}
-  else{S.min+=dt*1.5;if(S.min>=1140){goHome();return}}
-  if(S.phase==='play'){
-    // ponytail: casual pacing, mail only arrives while the tray is nearly clear, so there is always time for the lists
-    S.spawnT-=dt;if(S.spawnT<=0){if(S.tray.length<3){spawnRandom();S.spawnT=cfg().spawn*1.8*(.8+Math.random()*.4)}else S.spawnT=2}
-    (cfg().clients||[]).forEach(([f,ci],i)=>{if(!S.fired.includes(i)&&S.elapsed>=f*cfg().len){S.fired.push(i);spawnClient(ci)}});
-  }
-  if(S.block){S.block.t-=dt;if(S.block.t<=0){const b=S.block;S.block=null;b.done&&b.done();dirty=true}}
-  else if(S.job){const it=S.lists[S.job.ctx].find(x=>x.id===S.job.id);
-    if(!it)S.job=null;else if(S.mode===S.job.ctx){S.job.t-=dt;if(S.job.t<=0){S.lists[S.job.ctx]=S.lists[S.job.ctx].filter(x=>x!==it);S.job=null;complete(it,'list')}}}
-  for(const r of S.returns){r.t-=dt;if(r.t<=0){addToTray(r.item,true);toast(r.msg,'warn')}}S.returns=S.returns.filter(r=>r.t>0);
-  for(const w of S.waiting){
-    if(w.stale){w.staleT-=dt;if(w.staleT<=0){w.lost=true;lose(10,10,`${ROLES[w.role].name}ลืมเรื่อง "${w.item.title}" ไปแล้ว!`)}}
-    else{w.t-=dt;if(w.willStale&&w.t<=w.total/2){w.stale=true;w.willStale=false;w.staleT=30;dirty=true}
-      else if(w.t<=0){w.finished=true;gain(15,`${ROLES[w.role].name}: เรียบร้อย!`)}}}
-  if(S.waiting.some(w=>w.lost||w.finished)){S.waiting=S.waiting.filter(w=>!w.lost&&!w.finished);dirty=true}
-  for(const a of S.alerts){a.t-=dt;if(a.t<=0){a.gone=true;resolveAlert(a,false)}}
-  if(S.alerts.some(a=>a.gone)){S.alerts=S.alerts.filter(a=>!a.gone);dirty=true}
-  for(const e of S.sched){if(e.day<S.day||(e.day===S.day&&S.min>=e.min)){e.done=true;fire(e)}}
-  S.sched=S.sched.filter(e=>!e.done);
-  const st=stalled();
-  for(const c of S.clients){if(c.done||c.gone)continue;
-    if(st.includes(c))c.mood-=dt*1.2;else c.mood=Math.min(100,c.mood+dt);
-    if(c.mood<=0){c.gone=true;lose(30,15,`${c.name}ยกเลิกงาน! รอนานเกินไป`);S.tray=S.tray.filter(x=>x.clientId!==c.id);
-      for(const k in S.lists)S.lists[k]=S.lists[k].filter(x=>x.clientId!==c.id);dirty=true}}
-  let inc=.12*S.tray.length+.5*st.length+.4*S.waiting.filter(w=>w.stale).length;
-  if(!S.tray.length&&!S.block)inc-=1.4;
-  if(S.phase==='wrap')inc*=.5;
-  S.stress=Math.max(0,S.stress+inc*dt);
-  if(S.stress>=100){S.stress=100;burnout();return}
-  if(dirty){render();dirty=false}else hud();
-}
-function fire(e){
-  if(e.type==='meet'){const inCal=S.calendar.find(x=>x.id===e.itemId);
-    if(inCal){S.alerts.push({id:id(),type:'meet',itemId:e.itemId,title:inCal.title,t:22,total:22});dirty=true}
-    else{const inTray=S.tray.find(x=>x.id===e.itemId);S.tray=S.tray.filter(x=>x.id!==e.itemId);
-      const t=inTray?inTray.title:'นัดวันนี้';lose(15,12,`พลาดนัด! ${t}`);dirty=true}}
-  if(e.type==='q'){S.alerts.push({id:id(),type:'q',itemId:e.itemId,title:e.q,t:22,total:22});dirty=true}
-  if(e.type==='complain'){lose(10,8,`หัวหน้า: เรื่อง "${e.title}" ไปถึงไหนแล้ว?`)}
-}
-function resolveAlert(a,acted){
-  if(a.type==='meet'){S.calendar=S.calendar.filter(x=>x.id!==a.itemId);
-    if(acted)block(2.4,{title:a.title},'อยู่ในประชุม…',()=>gain(15,'ประชุมเสร็จ'));else lose(15,12,'ไม่ไปประชุมตามนัด!')}
-  if(a.type==='q'){const ok=S.cabinet.some(x=>x.id===a.itemId);
-    if(acted&&ok)gain(15,'เจอในตู้แล้ว!');else if(acted)lose(10,8,'ค้นทั้งตู้ก็ไม่เจอ…');else lose(10,8,'ตอบไม่ได้ ต้องถามคนอื่นต่อ')}
-  dirty=true;
-}
-function enterWrap(){S.phase='wrap';S.job=null;toast('หกโมงเย็นแล้ว! เคลียร์โต๊ะก่อนกลับบ้าน','warn');dirty=true}
-function checks(){
-  const c=[['ถาดเข้าว่างเปล่า',!S.tray.length,30]];
-  if(has('deleg'))c.push(['ไม่มีใครเงียบหายค้างอยู่',!S.waiting.some(w=>w.stale),20]);
-  if(has('client')&&S.clients.some(c=>!c.done&&!c.gone))c.push(['ลูกค้าทุกรายมีงานเดินอยู่',!stalled().length,20]);
-  if(cfg().review)c.push(['เปิดลิ้นชักทบทวนไอเดีย',S.drawerSeen,8*S.drawer.length+10]);
-  return c;
-}
-function goHome(){
-  if(S.phase!=='wrap'&&S.phase!=='play')return;
-  const cs=checks();let bonus=0;cs.forEach(([,ok,p])=>{if(ok)bonus+=p});
-  S.score+=bonus;
-  const pts=S.score-S.dayStart,pot=S.potential+cs.reduce((a,c)=>a+c[2],0);
-  const r=pot?pts/pot:0,stars=r>=.72?3:r>=.48?2:r>=.22?1:0;
-  S.week[S.day]={pts,stars,bonus,cs};
-  S.phase='summary';S.block=null;S.alerts=[];closeSheet();save();showSummary();
-}
-function burnout(){S.phase='burnout';closeSheet();showScreen(`
-  <div class="scr"><h2>หมดไฟ… 😵</h2>
-  <div class="card">เรื่องค้างเต็มหัวจนคิดอะไรไม่ออก วันนี้ขอเริ่มใหม่ตั้งแต่เก้าโมงเช้า</div>
-  <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(cfg().who)}</div>
-  <div>ไม่เป็นไรนะ ความเครียดมาจากของที่ยังไม่ได้ตัดสินใจ ยิ่งถาดโล่ง หัวยิ่งโล่ง ลองใหม่!</div></div>
-  <button class="btn big" data-a="retry">เริ่มวัน${esc(cfg().name)}ใหม่</button></div>`)}
-
-// ---------- render ----------
-function hud(){
-  if(!S)return;
-  $('hDay').textContent=(S.phase==='wrap'?'โอที · ':'วัน')+cfg().name;
-  $('hClock').textContent=fmt(S.min);$('hScore').textContent=S.score+' แต้ม';
-  const s=S.stress,f=$('hStress');f.style.width=s+'%';
-  f.style.background=s<45?'var(--ok)':s<75?'var(--warn)':'var(--stamp)';
-  $('hFace').textContent=s<30?'😌':s<55?'🙂':s<78?'😬':'😵';
-  const bl=$('block');bl.hidden=!S.block;
-  if(S.block){$('bLab').textContent=S.block.label;$('bWhat').textContent=S.block.title;$('bBar').style.width=(100*(1-S.block.t/S.block.total))+'%';
-    $('bHint').textContent=S.block.hint||(S.tray.length>=6?'ถาดใกล้เต็มแล้ว!':'')}
-  if(S.job){const e=document.querySelector(`[data-job="${S.job.id}"]`);if(e)e.style.width=(100*(1-S.job.t/S.job.total))+'%'}
-  document.querySelectorAll('[data-at]').forEach(e=>{const a=S.alerts.find(a=>a.id==e.dataset.at)||S.waiting.find(w=>w.item.id==e.dataset.at);
-    if(a)e.style.width=(100*(a.staleT!=null&&a.stale?a.staleT/30:a.t/a.total))+'%'});
-  document.querySelectorAll('[data-mood]').forEach(e=>{const c=S.clients.find(c=>c.id==e.dataset.mood);if(c){e.style.width=Math.max(0,c.mood)+'%';e.style.background=c.mood>60?'var(--ok)':c.mood>30?'var(--warn)':'var(--stamp)'}});
-}
+// ================= render =================
 function render(){
-  if(!S||!(S.phase==='play'||S.phase==='wrap'))return;
-  // alerts
-  let h='';
-  for(const a of S.alerts){h+=`<div class="alert"><div class="txt">${a.type==='meet'?'📅 ถึงเวลานัด: ':'❓ '}${esc(a.title)}<div class="timer" data-at="${a.id}"></div></div>
-    <button class="btn ${a.type==='meet'?'red':''}" data-a="alert" data-v="${a.id}">${a.type==='meet'?'ไปประชุม':'🗄️ เปิดตู้หา'}</button></div>`}
-  for(const w of S.waiting.filter(w=>w.stale)){h+=`<div class="alert soft"><div class="txt">💤 ${ROLES[w.role].name}เงียบไปเรื่อง “${esc(w.item.title)}”<div class="timer" data-at="${w.item.id}"></div></div>
-    <button class="btn ghost" data-a="nudge" data-v="${w.item.id}">ทวงถาม</button></div>`}
-  $('alerts').innerHTML=h;
-  // tray
-  const cap=8;$('trayCount').textContent=`${S.tray.length}/${cap}`;
-  $('trayBox').classList.toggle('full',S.tray.length>=cap-1);
-  $('tray').innerHTML=S.tray.map(it=>`<button class="note ${it.color||''} ${S.elapsed-it.born<3?'new':''}" data-a="pick" data-v="${it.id}" style="transform:rotate(${((it.id*37)%5-2)*.6}deg)">
-    <span class="src"><span>${esc(it.src)}</span>${it.tag?`<span>${esc(it.tag)}</span>`:''}</span><span class="t">${esc(it.title)}</span></button>`).join('')
-    +(S.tray.length%2?'<div class="slot"></div>':'');
-  if(!S.tray.length)$('tray').innerHTML=`<div class="empty" style="grid-column:1/-1">ถาดว่าง หัวโล่ง 😌</div>`;
-  // modes
+  if(S.phase!=='play')return;
+  // opening a face-down sheet in the tray costs 2 minutes of reading
+  if(S.clar&&S.tray.length){const it=S.tray[Math.min(S.clar.i,S.tray.length-1)];if(!it.opened){it.opened=true;advance(2)}}
+  const e=S.energy,col=e>60?'var(--ok)':e>35?'var(--warn)':'var(--stamp)';
+  const unopened=S.tray.filter(x=>!x.opened).length;
   const ms=Object.keys(CTX).filter(has);
-  $('modes').innerHTML=ms.map(m=>`<button class="mode ${S.mode===m?'on':''}" data-a="mode" data-v="${m}">${CTX[m].i} ${ms.length>1?CTX[m].n.replace('เดินในออฟฟิศ','เดิน'):CTX[m].n}<span class="n">${S.lists[m].length}</span></button>`).join('');
+  const nm=[...S.calendar].sort((a,b)=>a.time-b.time)[0];
   const L=S.lists[S.mode];
-  $('list').innerHTML=L.length?L.map(it=>{const doing=S.job&&S.job.id===it.id;return`<button class="task ${doing?'doing':''}" data-a="work" data-v="${it.id}">
-    <span class="tt">${it.tag?`<span class="tag">📁 ${esc(it.tag)}</span><br>`:''}${esc(it.title)}</span><span class="dots">${DOTS(it.size)}</span>
-    <span class="pbar"><i ${doing?`data-job="${it.id}"`:''}></i></span></button>`}).join('')
-    :`<div class="empty">${S.phase==='wrap'?'ลิสต์นี้ว่างแล้ว':'ลิสต์ตรงนี้ว่าง แตะงานในลิสต์เพื่อลงมือทำ'}</div>`;
-  // chips
+  let h=`<header class="hud"><div class="day">สัปดาห์ ${S.week} · วัน${DAYN[S.day]}<small>${RANKS[rankIdx()][1]} · ${S.score} แต้ม</small></div>
+    <div class="clock">${fmt(S.min)}<small>${S.min>=1020?'เลิกงานได้แล้ว':S.min<720?'ช่วงเช้า':'ช่วงบ่าย'}</small></div>
+    <div class="energy"><span>🔋 แรง</span><div class="bar"><div class="fill" style="width:${Math.min(100,e)}%;background:${col}"></div></div><b>${Math.round(e)}</b></div></header>`;
+  if(nm)h+=`<div class="next"><span>📅</span><div class="grow">นัดถัดไป <b>${fmt(nm.time)}</b> ${esc(nm.title)}</div>${nm.time-S.min<=90&&nm.time>S.min?`<button class="btn sm" data-a="wait">⏩ ไปรอ</button>`:''}</div>`;
+  h+=`<section class="box"><div class="sec-h"><span><b>📥 ถาดเข้า</b> ${S.tray.length} แผ่น${unopened?` · ยังไม่เปิด ${unopened}`:''}</span>
+    ${S.tray.length?`<button class="btn sm" data-a="clar">เคลียร์ถาด</button>`:''}</div>
+    ${S.tray.length?`<div class="tray-row">${S.tray.map((it,i)=>it.opened
+      ?`<button class="note ${it.color}" data-a="clar" data-v="${i}"><span class="s">${esc(it.tag?'📁 '+it.tag:it.sender)}</span><span class="t">${esc(it.title)}</span>${it.late?'<span class="s due late">เลยกำหนด</span>':it.due?`<span class="s due">ก่อน ${fmt(it.due)}</span>`:''}</button>`
+      :`<button class="note down" data-a="clar" data-v="${i}"><span class="s">ยังไม่เปิด</span><span class="t">${esc(it.sender)}</span></button>`).join('')}</div>`
+    :'<div class="empty">ถาดว่าง หัวโล่ง 😌</div>'}</section>`;
+  h+=`<section class="box"><div class="modes">${ms.map(m=>`<button class="mode ${S.mode===m?'on':''}" data-a="mode" data-v="${m}">${CTX[m].i} ${CTX[m].n}<span class="n">${S.lists[m].length}</span></button>`).join('')}</div>
+    <div class="tasks">${L.length?L.map(it=>{const t=workTime(it,true);return`<button class="task" data-a="work" data-v="${it.id}">
+      ${it.tag?`<span class="tag">📁 ${esc(it.tag)}</span>`:''}<span class="tt">${esc(it.title)}</span>
+      <span class="meta"><span>⏱ ${dur(t)}</span>${it.heavy?`<span class="heavy">💪 หนัก${S.energy<35?' · เหนื่อยอยู่ ช้าลง':''}</span>`:'<span>🍃 เบา</span>'}
+      ${it.due?`<span class="due ${it.late?'late':''}">${it.late?'เลยกำหนดแล้ว':'ก่อน '+fmt(it.due)}</span>`:''}${nm&&nm.time>S.min&&S.min+t>nm.time?'<span class="due">จะไปประชุมสาย</span>':''}</span></button>`}).join('')
+      :`<div class="empty">ลิสต์${CTX[S.mode].n}ว่าง${S.tray.length?' ลองเคลียร์ถาดดูไหม':''}</div>`}</div></section>`;
+  h+=`<div class="acts"><button class="btn ghost" data-a="rest">☕ พัก 15 นาที</button>
+    ${has('review')&&S.day===4&&!S.reviewed?`<button class="btn" data-a="review" ${S.min<900?'disabled':''}>🔍 ทบทวน${S.min<900?' (บ่ายสาม)':''}</button>`:''}
+    <button class="btn ghost" data-a="home" ${S.min<1020?'disabled':''}>🏠 กลับบ้าน${S.min<1020?' (5 โมง)':''}</button></div>`;
   const chips=[];
   if(has('deleg'))chips.push(['waiting','🤝','รอคนอื่น',S.waiting.length,S.waiting.some(w=>w.stale)]);
   if(has('cal'))chips.push(['cal','📅','ปฏิทิน',S.calendar.length,false]);
-  if(has('cab'))chips.push(['cab','🗄️','ตู้เอกสาร',S.cabinet.length,false]);
+  if(has('cab'))chips.push(['cab','🗄️','ตู้',S.cabinet.length,false]);
   if(has('drawer'))chips.push(['drawer','🌙','ลิ้นชัก',S.drawer.length,false]);
   if(has('client'))chips.push(['clients','📁','ลูกค้า',S.clients.filter(c=>!c.done&&!c.gone).length,stalled().length>0]);
-  $('chips').innerHTML=chips.map(([k,i,n,c,hot])=>`<button class="chip ${hot?'hot':''}" data-a="view" data-v="${k}"><span>${i} ${n}</span><b>${c}</b></button>`).join('');
-  // wrap
-  const w=$('wrap');w.hidden=S.phase!=='wrap';
-  if(S.phase==='wrap'){w.innerHTML=`<div class="wrapbox"><h3>ก่อนกลับบ้าน เคลียร์โต๊ะให้เรียบร้อย</h3>
-    ${checks().map(([t,ok,p])=>`<div class="check ${ok?'done':''}"><span class="box">${ok?'✓':''}</span>${esc(t)}<span class="pts">+${p}</span></div>`).join('')}
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${cfg().review&&!S.drawerSeen?'<button class="btn ghost" data-a="view" data-v="drawer">🌙 เปิดลิ้นชัก</button>':''}
-    <button class="btn" data-a="home" style="flex:1">🏠 กลับบ้าน</button></div></div>`}
-  hud();
-  if(openSheet&&openSheet.view)renderView(openSheet.view);
+  if(chips.length)h+=`<div class="chips">${chips.map(([k,i,n,c,hot])=>`<button class="chip ${hot?'hot':''}" data-a="view" data-v="${k}"><span>${i} ${n}</span><b>${c}</b></button>`).join('')}</div>`;
+  $('app').innerHTML=h;
+  renderPop();
+  if(S.clar)renderClar();
+}
+function renderPop(){
+  const p=S.pop[0];$('modal').hidden=!p;if(!p)return;let h='';
+  if(p.type==='lunch')h=`<h4>🍜 เที่ยงแล้ว</h4><p>พักกินข้าวหนึ่งชั่วโมง แรงจะฟื้นกลับมา</p><button class="btn big" style="width:100%" data-a="p" data-v="eat">ไปกินข้าว</button>`;
+  if(p.type==='meet'){const late=Math.max(0,Math.round(S.min-p.start));h=`<h4>📅 ถึงเวลานัด</h4><p>${esc(p.title)} · ${fmt(p.start)}${late?`<br><b style="color:var(--stamp)">สายไปแล้ว ${late} นาที</b>`:''}</p>
+    <div class="col"><button class="btn big" data-a="p" data-v="go">เข้าประชุม (30 นาที)</button><button class="btn ghost" data-a="p" data-v="skip">ไม่ไป</button></div>`}
+  if(p.type==='q')h=`<h4>❓ มีคนถาม</h4><p>${esc(p.q)}</p><div class="col"><button class="btn big" data-a="p" data-v="find">🗄️ เปิดตู้หา${perk('cabinet')?'':' (5 นาที)'}</button><button class="btn ghost" data-a="p" data-v="dunno">ไม่รู้เหมือนกัน</button></div>`;
+  if(p.type==='thought')h=`<h4>💭 นึกขึ้นได้…</h4><div class="bignote c2"><div class="t">${esc(p.title)}</div></div>
+    <div class="col"><button class="btn big" data-a="p" data-v="jot">📥 จดลงถาดไว้ก่อน</button><button class="btn ghost" data-a="p" data-v="now">⚡ หยุดไปจัดการตอนนี้ (15 นาที)</button><button class="btn ghost" data-a="p" data-v="forget">🤷 ช่างมันเถอะ</button></div>`;
+  if(p.type==='next'){const it=p.item;h=`<h4>📁 ${esc(it.tag)}</h4><p>${p.first?'ขั้นแรกของงานนี้คือ':'ขั้นก่อนหน้าเสร็จแล้ว ขั้นต่อไปคือ'}</p>
+    <div class="bignote c3"><div class="t">${esc(it.title)}</div><div class="meta"><span>⏱ ${dur(it.dur)}</span><span>${it.heavy?'💪 หนัก':'🍃 เบา'}</span></div></div>
+    <p style="margin-bottom:8px">ใส่ลิสต์ไหนดี?</p><div class="dests">${Object.keys(CTX).filter(has).map(c=>`<button class="dest" data-a="p" data-v="ctx:${c}"><span class="i">${CTX[c].i}</span>${CTX[c].list}</button>`).join('')}
+    <button class="dest" data-a="p" data-v="later"><span class="i">📥</span>ไว้คิดทีหลัง</button></div>`}
+  $('modalBody').innerHTML=h;
+}
+function resolvePop(v){
+  const p=S.pop.shift();
+  if(p.type==='lunch'){advance(60);S.energy=Math.min(110,S.energy+40+(perk('lunch')?20:0));toast('อิ่มแล้ว แรงกลับมา 🔋','good')}
+  if(p.type==='meet'){S.calendar=S.calendar.filter(x=>x.id!==p.id);
+    if(v==='go'){const late=S.min-p.start;advance(30);S.energy=Math.max(0,S.energy-4);late<=0?gain(15,'ประชุมตรงเวลา'):late<30?gain(8,'ประชุม (มาสาย)'):lose(5,'มาสายจนประชุมจบแล้ว')}
+    else lose(10,'ไม่ไปประชุมตามนัด')}
+  if(p.type==='q'){const ok=S.cabinet.some(x=>x.id===p.id);
+    if(v==='find'){if(!perk('cabinet'))advance(5);ok?gain(perk('cabinet')?20:14,'เจอในตู้แล้ว!'):lose(5,'ค้นทั้งตู้ก็ไม่เจอ')}else lose(5,'ตอบไม่ได้')}
+  if(p.type==='thought'){
+    if(v==='jot'){const it={id:id(),kind:'quick',title:p.title,ctx:'pc',dur:2,opened:true,color:'c2',sender:'💭 เรื่องที่นึกได้'};S.dayPot+=6;S.tray.push(it);toast('จดไว้แล้ว ไปต่อได้เลย')}
+    if(v==='now'){advance(15);S.energy=Math.max(0,S.energy-3);gain(6,'จัดการแล้ว แต่เสียจังหวะไปหน่อย')}
+    if(v==='forget'&&Math.random()<.6)sched(S.min+90+Math.random()*120,'complain',{title:p.title})}
+  if(p.type==='next'){
+    if(v==='later'){S.tray.push(p.item);toast('ลงถาดไว้ก่อน อย่าลืมกลับมาดูนะ','warn')}
+    else{const c=v.split(':')[1];if(c===p.item.ctx){S.lists[c].push(p.item);toast(`ใส่${CTX[c].list}แล้ว งานลูกค้าเดินต่อ`)}
+      else{S.tray.push(p.item);toast(`งานนี้ทำจาก${CTX[c].n}ไม่ได้ ลงถาดไว้ก่อน`,'warn')}}}
+  after();
 }
 
-// ---------- sheets ----------
-function showSheet(html){$('sheetBody').innerHTML=html;$('sheet').hidden=false}
-function closeSheet(){openSheet=null;$('sheet').hidden=true}
-function renderPick(it,sub){
-  if(sub==='deleg'){showSheet(`<h4>ส่งต่อให้ใคร?</h4><div class="bignote ${it.color||''}"><div class="t">${esc(it.title)}</div></div>
+// ================= sheets =================
+function sheet(h){$('sheetBody').innerHTML=h;$('sheet').hidden=false}
+function closeSheet(){$('sheet').hidden=true;S&&(S.clar=null)}
+function renderClar(){
+  const i=Math.min(S.clar.i,S.tray.length-1);if(i<0||!S.tray.length){closeSheet();toast('ถาดว่างแล้ว หัวโล่ง 😌','good');return}
+  S.clar.i=i;const it=S.tray[i];
+  const dests=[['trash','🗑️','ทิ้ง'],['now','⚡','ทำเลย',it.dur?dur(workTime(it,false)):''],['pc','💻','ลิสต์คอม'],['phone','📞','ลิสต์โทร'],['walk','🚶','ลิสต์เดิน'],
+    ['deleg','🤝','ส่งต่อ…'],['cal','📅','ลงปฏิทิน'],['cab','🗄️','เก็บเข้าตู้'],['drawer','🌙','ลิ้นชัก'],['client','📁','เปิดแฟ้ม']].filter(([d])=>has(d));
+  const meta=[];if(it.dur)meta.push('⏱ '+dur(it.dur),it.heavy?'💪 หนัก':'🍃 เบา');if(it.due)meta.push((it.late?'เลยกำหนด ':'ต้องเสร็จก่อน ')+fmt(it.due));if(it.time)meta.push('📅 นัดเวลา '+fmt(it.time));
+  sheet(S.clar.deleg?`<h4>ส่งต่อให้ใคร?</h4><div class="bignote ${it.color}"><div class="t">${esc(it.title)}</div></div>
     <div class="dests">${Object.entries(ROLES).map(([k,r])=>`<button class="dest" data-a="to" data-v="deleg:${k}"><span class="i">${r.i}</span>${r.name}<small>${r.dept}</small></button>`).join('')}</div>
-    <div style="margin-top:10px"><button class="btn ghost" data-a="back">← กลับ</button></div>`);return}
-  const meta=[];if(it.size)meta.push('ความยาวงาน '+DOTS(Math.min(it.size,3))+(it.size>3?'+':''));
-  showSheet(`<div class="bignote ${it.color||''}"><div class="meta" style="margin:0 0 6px"><span>${esc(it.src)}</span>${it.tag?`<span>📁 ${esc(it.tag)}</span>`:''}</div>
-    <div class="t">${esc(it.title)}</div>${meta.length?`<div class="meta">${meta.join(' · ')}</div>`:''}</div>
-    <h4>จะทำอะไรกับแผ่นนี้?</h4>
-    <div class="dests">${DEST.filter(([d])=>has(d)).map(([d,i,l])=>`<button class="dest" data-a="to" data-v="${d}"><span class="i">${i}</span>${l}</button>`).join('')}</div>`);
+    <div style="margin-top:10px"><button class="btn ghost" data-a="back">← กลับ</button></div>`
+  :`<div class="progress">แผ่นที่ ${i+1} จาก ${S.tray.length} · ${fmt(S.min)} · แต่ละแผ่นใช้เวลาอ่าน 2 นาที</div>
+    <div class="bignote ${it.color}"><div class="meta" style="margin:0 0 6px"><span>${esc(it.tag?'📁 '+it.tag:it.sender)}</span></div><div class="t">${esc(it.title)}</div>${meta.length?`<div class="meta">${meta.map(esc).join(' · ')}</div>`:''}</div>
+    <div class="dests">${dests.map(([d,ic,l,sub])=>`<button class="dest" data-a="to" data-v="${d}"><span class="i">${ic}</span>${l}${sub?`<small>${sub}</small>`:''}</button>`).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">${S.tray.length>1?`<button class="btn ghost" data-a="skip">ข้ามแผ่นนี้</button>`:''}<button class="btn ghost" data-a="close" style="margin-left:auto">พอก่อน</button></div>`);
 }
 function renderView(v){
   let h='';
-  if(v==='waiting'){h=`<h4>🤝 รอคนอื่นทำ</h4><div class="rows">${S.waiting.map(w=>`<div class="row"><span>${ROLES[w.role].i}</span><div class="grow">${esc(w.item.title)}<br><small>${ROLES[w.role].name} · ${w.stale?'💤 เงียบไป':'กำลังทำ'}</small></div>
-    ${w.stale?`<button class="btn ghost" data-a="nudge" data-v="${w.item.id}">ทวง</button>`:''}</div>`).join('')||'<div class="empty">ยังไม่ได้ฝากงานใคร</div>'}</div>`}
-  if(v==='cal'){h=`<h4>📅 นัดวันนี้</h4><div class="rows">${[...S.calendar].sort((a,b)=>a.time-b.time).map(x=>`<div class="row"><b style="font-family:var(--mono)">${fmt(x.time)}</b><div class="grow">${esc(x.title.split(' · ')[0])}</div></div>`).join('')||'<div class="empty">ปฏิทินว่าง</div>'}</div>`}
-  if(v==='cab'){h=`<h4>🗄️ ตู้เอกสาร</h4><div class="rows">${S.cabinet.map(x=>`<div class="row">📄<div class="grow">${esc(x.title)}</div></div>`).join('')||'<div class="empty">ตู้ยังว่าง</div>'}</div>`}
-  if(v==='drawer'){
-    if(cfg().review&&S.phase==='wrap'&&!S.drawerSeen){S.drawerSeen=true;if(S.drawer.length)toast(`ไอเดียเก่ากลายเป็นข้อเสนอดี ๆ ให้หัวหน้า`,'good');dirty=true}
-    h=`<h4>🌙 ลิ้นชัก</h4><div class="rows">${S.drawer.map(x=>`<div class="row">💡<div class="grow">${esc(x.title)}${x.returnDay!=null?`<br><small>รอถึงวัน${DAYS[x.returnDay].name}</small>`:''}</div></div>`).join('')||'<div class="empty">ลิ้นชักว่าง</div>'}</div>`}
-  if(v==='clients'){h=`<h4>📁 แฟ้มลูกค้า</h4><div class="rows">${S.clients.map(c=>{const mv=inMotion(c);const st=c.done?'เสร็จครบแล้ว 🎉':c.gone?'ยกเลิกไปแล้ว':mv?'มีงานเดินอยู่':'งานหยุดนิ่ง! ขั้นต่อไปยังค้างในถาด';
-    return`<div class="row"><div class="grow"><b>${esc(c.name)}</b> <small>ขั้น ${Math.min(c.idx+1,c.steps.length)}/${c.steps.length}</small><br><small>${st}</small>${!c.done&&!c.gone?`<div class="mood"><i data-mood="${c.id}"></i></div>`:''}</div></div>`}).join('')||'<div class="empty">ยังไม่มีลูกค้า</div>'}</div>`}
-  showSheet(h+`<div style="margin-top:12px"><button class="btn ghost" data-a="closeSheet">ปิด</button></div>`);hud();
+  if(v==='waiting')h=`<h4>🤝 รอคนอื่นทำ</h4><div class="rows">${S.waiting.map(w=>`<div class="row"><span>${ROLES[w.role].i}</span><div class="grow">${esc(w.item.title)}<br><small>${ROLES[w.role].name} · ${w.stale?'💤 เงียบไป':'กำลังทำ'}</small></div>
+    ${w.stale?`<button class="btn sm" data-a="nudge" data-v="${w.item.id}">ทวง (5 นาที)</button>`:''}</div>`).join('')||'<div class="empty">ยังไม่ได้ฝากงานใคร</div>'}</div>`;
+  if(v==='cal')h=`<h4>📅 นัดวันนี้</h4><div class="rows">${[...S.calendar].sort((a,b)=>a.time-b.time).map(x=>`<div class="row"><b style="font-family:var(--mono)">${fmt(x.time)}</b><div class="grow">${esc(x.title)}</div></div>`).join('')||'<div class="empty">ปฏิทินว่าง</div>'}</div>`;
+  if(v==='cab')h=`<h4>🗄️ ตู้เอกสาร</h4><div class="rows">${S.cabinet.map(x=>`<div class="row">📄<div class="grow">${esc(x.title)}</div></div>`).join('')||'<div class="empty">ตู้ยังว่าง</div>'}</div>`;
+  if(v==='drawer')h=`<h4>🌙 ลิ้นชัก</h4><div class="rows">${S.drawer.map(x=>`<div class="row">💡<div class="grow">${esc(x.title)}${x.returnDay!=null?`<br><small>จะกลับมาวัน${DAYN[x.returnDay]}</small>`:''}</div></div>`).join('')||'<div class="empty">ลิ้นชักว่าง</div>'}</div>`;
+  if(v==='clients')h=`<h4>📁 แฟ้มลูกค้า</h4><div class="rows">${S.clients.filter(c=>!c.gone&&!c.done).map(c=>{const mv=inMotion(c),m=Math.max(0,c.mood);
+    return`<div class="row"><div class="grow"><b>${esc(c.name)}</b> <small>ขั้น ${c.idx+1}/${c.steps.length}</small><br><small>${mv?'มีงานเดินอยู่':'ไม่มีขั้นไหนเดินอยู่ ลูกค้าเริ่มหงุดหงิด'}</small>
+    <div class="mood"><i style="width:${m}%;background:${m>60?'var(--ok)':m>30?'var(--warn)':'var(--stamp)'}"></i></div></div></div>`}).join('')||'<div class="empty">ยังไม่มีลูกค้า</div>'}</div>`;
+  if(v==='review'){const cs=reviewChecks();h=`<h4>🔍 ทบทวนประจำสัปดาห์</h4><p>ใช้เวลา 1 ชั่วโมง ยิ่งเช็กผ่านมาก สัปดาห์หน้ายิ่งได้เลือกของดีมากขึ้น</p>
+    <div class="rows">${cs.map(([t,ok])=>`<div class="row"><span>${ok?'✅':'⬜'}</span><div class="grow">${esc(t)}</div></div>`).join('')}
+    <div class="row"><span>💡</span><div class="grow">ไล่ดูลิ้นชัก ${S.drawer.length} ไอเดีย<br><small>ไอเดียดี ๆ กลายเป็นข้อเสนอให้หัวหน้า ได้แต้มเพิ่ม</small></div></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" data-a="doReview" style="flex:1">เริ่มทบทวน</button><button class="btn ghost" data-a="close">ไว้ก่อน</button></div>`}
+  sheet(h+(v==='review'?'':`<div style="margin-top:12px"><button class="btn ghost" data-a="close">ปิด</button></div>`));
 }
+function reviewChecks(){return[['ถาดเข้าว่างเปล่า',!S.tray.length],['ไม่มีใครเงียบหายค้างอยู่',!S.waiting.some(w=>w.stale)],['ลูกค้าทุกรายมีขั้นต่อไปเดินอยู่',!stalled().length]]}
 
-// ---------- screens ----------
-function showScreen(html){$('screen').innerHTML=html;$('screen').hidden=false;$('screen').scrollTop=0;$('app').hidden=true}
-function hideScreen(){$('screen').hidden=true;$('app').hidden=false}
-function dayDots(){return`<div class="days">${['จ','อ','พ','พฤ','ศ'].map((n,i)=>`<span class="${S&&S.week[i]?'done':''} ${S&&i===S.day&&!S.week[i]?'cur':''}">${n}</span>`).join('')}</div>`}
-function showTitle(){
-  const saved=load();const canCont=saved&&saved.phase==='summary'&&saved.day<4;
-  $('app').hidden=true;showScreen(`<div class="scr">
-    <h1 class="logo"><span>ออฟฟิศป่วน</span></h1>
-    <p class="sub">สัปดาห์แรกของพนักงานใหม่ งานถล่มมาไม่หยุด เอาตัวรอดให้ถึงเย็นวันศุกร์</p>
-    <div class="stack-notes">
-      <div class="note" style="left:4%;top:10px;transform:rotate(-6deg)"><span class="src">📧 อีเมล</span><span class="t">ยินดีด้วย! คุณได้รับ iPhone ฟรี</span></div>
-      <div class="note c3" style="left:32%;top:34px;transform:rotate(3deg)"><span class="src">💬 แชท</span><span class="t">เครื่องพิมพ์ชั้น 3 กระดาษติดอีกแล้ว</span></div>
-      <div class="note c2" style="right:2%;top:4px;transform:rotate(8deg)"><span class="src">📝 โน้ต</span><span class="t">ทำสไลด์ยอดขายเดือนนี้</span></div>
-    </div>
-    <button class="btn big" data-a="new">เริ่มงานวันแรก</button>
-    ${canCont?`<button class="btn big ghost" data-a="cont">ทำงานต่อ · วัน${DAYS[saved.day+1].name}</button>`:''}
-    <p class="sub" style="font-size:13px">เล่นได้ทั้งมือถือและคอม ใช้แค่นิ้วแตะ · ประมาณ 2–3 นาทีต่อวัน</p></div>`)}
-function showIntro(){
-  const d=cfg();showScreen(`<div class="scr">${dayDots()}<h2>วัน${d.name} · 09:00</h2>
-    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(d.who)}</div><div>${esc(d.hello)}</div>
-    ${d.tips.map(([i,t])=>`<div class="tip"><span class="i">${i}</span><span>${esc(t)}</span></div>`).join('')}</div>
-    ${S.day>0?`<div class="card" style="font-size:14px;color:var(--muted)">ของที่ค้างจากเมื่อวานยังอยู่ครบ ถาด ลิสต์ และงานที่ฝากคนอื่นไว้</div>`:''}
-    <button class="btn big" data-a="play">เข้างาน</button></div>`)}
-function showSummary(){
-  const w=S.week[S.day],d=cfg();
-  showScreen(`<div class="scr">${dayDots()}<h2>จบวัน${d.name}</h2>
-    <div class="stars">${[0,1,2].map(i=>`<span class="${i<w.stars?'':'off'}">★</span>`).join('')}</div>
-    <div class="card"><div class="kv"><span>แต้มวันนี้</span><b>${w.pts}</b></div>
-    ${w.cs.map(([t,ok,p])=>`<div class="kv"><span>${ok?'✓':'✗'} ${esc(t)}</span><b>${ok?'+'+p:'0'}</b></div>`).join('')}
-    <div class="kv"><span>แต้มสะสม</span><b>${S.score}</b></div></div>
-    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>${esc(d.who)}</div><div>${esc(praise(w.stars))}</div></div>
-    ${S.day<4?`<button class="btn big" data-a="next">ไปวัน${DAYS[S.day+1].name}</button>`:`<button class="btn big" data-a="ending">ดูผลงานทั้งสัปดาห์</button>`}
-    <button class="btn ghost" data-a="retry">เล่นวันนี้ใหม่</button></div>`)}
-function praise(s){return['วันนี้หนักหน่อย พรุ่งนี้ลองจัดการแต่ละแผ่นให้ไวขึ้น อย่าปล่อยให้ค้างในถาด','พอไหว! ลองแยกงานสั้นทำเลย งานยาวใส่ลิสต์ แล้วจะลื่นขึ้นเยอะ','ดีมาก! โต๊ะเป็นระเบียบ งานเดินตลอด','สุดยอด! แบบนี้พี่วางใจได้เลย'][s]}
-function showEnding(){
-  const tot=S.week.reduce((a,w)=>a+(w?w.stars:0),0);
-  const rank=tot>=13?['ตำนานโต๊ะว่าง','งานเข้ามาเท่าไหร่ก็ไม่เคยค้างในหัว ทุกคนอยากรู้ว่าทำได้ยังไง']:tot>=9?['พนักงานดีเด่นประจำสัปดาห์','หัวหน้าเริ่มฝากงานสำคัญให้แล้ว']:tot>=5?['มือใหม่ไฟแรง','ยังมีหลุดบ้าง แต่จับทางได้แล้ว']:['ผู้รอดชีวิตสัปดาห์แรก','รอดมาถึงวันศุกร์ได้ก็เก่งแล้ว!'];
-  showScreen(`<div class="scr">${dayDots()}<h2>ศุกร์เย็น · สัปดาห์แรกจบแล้ว</h2>
-    <div class="card" style="text-align:center"><div style="font-size:13px;color:var(--muted)">ตำแหน่งที่ได้</div>
-    <div style="font-family:var(--display);font-size:26px;margin:4px 0">${rank[0]}</div><div>${rank[1]}</div>
-    <div class="stars" style="font-size:22px;margin-top:8px">★ ${tot}/15</div></div>
-    <div class="card">${S.week.map((w,i)=>`<div class="kv"><span>วัน${DAYS[i].name}</span><b>${'★'.repeat(w.stars)}${'☆'.repeat(3-w.stars)} · ${w.pts}</b></div>`).join('')}
-    <div class="kv"><span>รวมทั้งสัปดาห์</span><b>${S.score} แต้ม</b></div></div>
-    <div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>พี่นุ่น · หัวหน้าทีม</div>
-    <div>รู้ไหม เคล็ดลับของคนทำงานเก่งไม่ใช่การจำเก่ง แต่คือไม่เก็บอะไรไว้ในหัวเลย ทุกเรื่องมีที่ของมัน หัวเลยว่างไว้คิดเรื่องที่สำคัญจริง ๆ</div></div>
-    <button class="btn big" data-a="new">เริ่มสัปดาห์ใหม่</button></div>`)}
-
-// ---------- flow ----------
+// ================= days =================
+function scheduleDay(){
+  const L=rankIdx(),per=S.week===1?[3,2,2,1]:[2,2,2,2].map((n,i)=>n+(L>=2&&i<2?1:0)+(L>=4&&i>=2?1:0));
+  [[S.min,per[0]],[660,per[1]],[840,per[2]],[960,per[3]]].forEach(([at,n])=>sched(at,'mail',{n}));
+  sched(720,'lunch',{});
+  if(has('client')){const active=S.clients.filter(c=>!c.done&&!c.gone).length,cap=Math.min(3,1+Math.floor(L/2));
+    if(S.week===1&&S.day===3){sched(600,'client',{})}
+    else if(S.week>1&&(S.day===0||S.day===2)&&active<cap)sched(570+Math.random()*240,'client',{})}
+}
 function startDay(){
-  S.phase='intro';S.min=540;S.elapsed=0;S.spawnT=1.2;S.fired=[];S.alerts=[];S.job=null;S.block=null;S.drawerSeen=false;S.potential=0;S.mode='pc';
-  S.calendar=[];S.stress=Math.min(60,8+S.tray.length*4+S.waiting.filter(w=>w.stale).length*5);
-  S.dayStart=S.score;
-  showIntro();
-}
-function begin(){
-  snap=JSON.stringify(S);
-  // drawer items whose day has come go back to the tray
+  S.min=perk('early')?510:540;S.energy=perk('plant')?110:100;S.dayPts=0;S.dayPot=20;S.reviewed=S.day===4?false:S.reviewed;S.mode='pc';S.calendar=[];S.clar=null;S.pop=[];
+  S.ev=S.ev.map(e=>['meet','lunch','mail','client'].includes(e.type)?null:{...e,at:S.min+30+Math.random()*120}).filter(Boolean);
   const due=S.drawer.filter(x=>x.returnDay===S.day);S.drawer=S.drawer.filter(x=>x.returnDay!==S.day);
-  S.phase='play';
-  due.forEach(x=>{addToTray({id:id(),kind:'task',title:x.becomes,ctx:'pc',size:1,value:20,src:'🌙 จากลิ้นชัก',color:'c2'},true);S.potential+=20});
-  if(due.length)setTimeout(()=>toast('ของในลิ้นชักถึงวันของมันแล้ว!','good'),600);
-  if(cfg().tickler){const t={id:id(),kind:'idea',title:'ประกาศ: สัมมนาการตลาดฟรี เปิดรับสมัครวันศุกร์',ctx:'pc',size:3,returnDay:4,becomes:'สมัครสัมมนาการตลาดฟรี (เปิดรับวันนี้!)',src:'📌 ประกาศ',color:'',born:0};
-    S.tray.push(t);S.potential+=3}
-  hideScreen();dirty=true;last=performance.now();render();
+  due.forEach(x=>{S.tray.unshift({id:id(),kind:'task',title:x.becomes,ctx:'pc',dur:15,heavy:false,value:20,opened:true,color:'c2',sender:'🌙 จากลิ้นชัก'});S.dayPot+=20});
+  S.phase='intro';save();showIntro(due.length);
 }
-function act(a,v,el){
+function begin(){S.phase='play';scheduleDay();advance(0);hideScreen();after()}
+function endDay(){
+  closeSheet();
+  const cs=[['ถาดเข้าว่างก่อนกลับบ้าน',!S.tray.length,10],['ไม่มีงานค้างเลยกำหนด',!allTasks().some(x=>x.late),10]];
+  cs.forEach(([t,ok,p])=>{if(ok){S.score+=p;S.dayPts+=p}});
+  const r=S.dayPts/Math.max(40,S.dayPot),stars=r>=.6?3:r>=.4?2:r>=.2?1:0;
+  S.stars+=stars;S.week_log[S.day]={pts:Math.round(S.dayPts),stars};
+  // pending decisions (meetings, lunch, questions) do not follow you home
+  S.pop=[];S.phase='summary';save();showSummary(cs,stars);
+}
+function nextDay(){if(S.day===4){showWeekend();return}S.day++;startDay()}
+
+// ================= screens =================
+function showScreen(h){$('screen').innerHTML=h;$('screen').hidden=false;$('screen').scrollTop=0;$('app').hidden=true;$('sheet').hidden=true;$('modal').hidden=true}
+function hideScreen(){$('screen').hidden=true;$('app').hidden=false}
+const dots=()=>`<div class="days">${DAYS.map((n,i)=>`<span class="${S.week_log[i]?'done':''} ${i===S.day&&!S.week_log[i]?'cur':''}">${n}</span>`).join('')}</div>`;
+const mentor=(b)=>`<div class="bubble"><div class="who"><div class="avatar">👩🏻‍💼</div>พี่นุ่น · หัวหน้าทีม</div>${b}</div>`;
+function showTitle(){
+  const s=load(),can=s&&(s.phase==='intro'||s.phase==='summary');
+  showScreen(`<div class="scr"><h1 class="logo"><span>โต๊ะว่าง</span> <span>ใจว่าง</span></h1>
+    <p class="sub">ชีวิตพนักงานออฟฟิศแบบไม่ต้องรีบ เลือกงานให้ถูกเวลา จัดโต๊ะให้โล่ง แล้วไต่ตำแหน่งไปเรื่อย ๆ</p>
+    ${can?`<button class="btn big" data-a="cont">เล่นต่อ · สัปดาห์ ${s.week} วัน${DAYN[s.day]}</button><button class="btn big ghost" data-a="new">เริ่มใหม่ตั้งแต่วันแรก</button>`
+      :`<button class="btn big" data-a="new">เริ่มงานวันแรก</button>`}
+    <p class="sub" style="font-size:13px">เกมแบบผลัด นาฬิกาเดินเฉพาะตอนเราทำอะไร · วันละ 3–5 นาที · เซฟอัตโนมัติทุกเช้า</p></div>`)}
+function showIntro(tickler){
+  const t=S.week===1?TUT[S.day]:null;
+  showScreen(`<div class="scr">${dots()}<h2>สัปดาห์ ${S.week} · วัน${DAYN[S.day]}</h2>
+    ${t?mentor(`<div>${esc(t.hello)}</div>${t.tips.map(([i,x])=>`<div class="tip"><span class="i">${i}</span><span>${esc(x)}</span></div>`).join('')}`)
+      :`<div class="card"><div class="kv"><span>ตำแหน่ง</span><b>${RANKS[rankIdx()][1]}</b></div><div class="kv"><span>ดาวสะสม</span><b>★ ${S.stars}</b></div>
+       <div class="kv"><span>ของติดโต๊ะ</span><span class="perklist">${S.perks.map(p=>PERKS[p][0]).join('')||'—'}</span></div></div>`}
+    ${S.tray.length||S.clients.some(c=>!c.done&&!c.gone)?`<div class="card" style="font-size:14px;color:var(--muted)">ของเมื่อวานยังอยู่ครบ ถาด ${S.tray.length} แผ่น ลิสต์ ${Object.values(S.lists).flat().length} งาน${tickler?' · มีของจากลิ้นชักกลับมาด้วย':''}</div>`:''}
+    <button class="btn big" data-a="play">เข้างาน ${fmt(S.min)}</button></div>`)}
+function showSummary(cs,stars){
+  const w=S.week_log[S.day];
+  showScreen(`<div class="scr">${dots()}<h2>จบวัน${DAYN[S.day]}</h2><div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">★</span>`).join('')}</div>
+    <div class="card"><div class="kv"><span>แต้มวันนี้</span><b>${w.pts}</b></div>${cs.map(([t,ok,p])=>`<div class="kv"><span>${ok?'✓':'✗'} ${esc(t)}</span><b>${ok?'+'+p:'0'}</b></div>`).join('')}
+    <div class="kv"><span>ตำแหน่ง</span><b>${RANKS[rankIdx()][1]}</b></div></div>
+    ${mentor(`<div>${['วันนี้หลุดไปหลายอย่าง พรุ่งนี้ลองเปิดถาดให้ครบเร็วขึ้นนิดนึง จะได้รู้ว่ามีอะไรด่วน','พอไปได้! ลองเลือกงานให้เข้ากับแรงที่มี งานหนักตอนเช้า งานเบาตอนบ่าย','ดีมาก งานเดินตลอดวัน','สุดยอด! โต๊ะโล่ง ใจก็โล่ง'][stars]}</div>`)}
+    <button class="btn big" data-a="next">${S.day===4?'ไปสรุปสัปดาห์':'ไปวัน'+DAYN[S.day+1]}</button></div>`)}
+function showWeekend(){
+  const wk=S.week_log.reduce((a,w)=>a+(w?w.stars:0),0);
+  const avail=Object.keys(PERKS).filter(p=>!S.perks.includes(p)).sort(()=>Math.random()-.5);
+  const n=S.reviewed?S.reviewQ:1,choices=avail.slice(0,n);
+  S.phase='weekend';
+  showScreen(`<div class="scr">${dots()}<h2>สุดสัปดาห์ที่ ${S.week}</h2>
+    <div class="card"><div class="kv"><span>ดาวสัปดาห์นี้</span><b>★ ${wk}/15</b></div><div class="kv"><span>ดาวสะสม</span><b>★ ${S.stars}</b></div><div class="kv"><span>ตำแหน่ง</span><b>${RANKS[rankIdx()][1]}</b></div></div>
+    ${choices.length?`${mentor(`<div>${S.reviewed?`ทบทวนมาดี เลือกของติดโต๊ะไว้ใช้สัปดาห์หน้าได้ ${n} ตัวเลือก`:'สัปดาห์นี้ไม่ได้ทบทวน เลยมีของให้เลือกแค่อย่างเดียวนะ'}</div>`)}
+      <div class="col">${choices.map(p=>`<button class="perk" data-a="perk" data-v="${p}"><span class="i">${PERKS[p][0]}</span><span><b>${PERKS[p][1]}</b><small>${PERKS[p][2]}</small></span></button>`).join('')}</div>`
+      :`${mentor('<div>ของติดโต๊ะครบทุกอย่างแล้ว! รับโบนัสแทนนะ</div>')}<button class="btn big" data-a="perk" data-v="">รับ +30 แต้ม</button>`}</div>`)}
+function newWeek(p){if(p)S.perks.push(p);else S.score+=30;S.week++;S.day=0;S.week_log=[];S.reviewed=false;startDay()}
+
+// ================= input =================
+function act(a,v){
   if(a==='new'){S=fresh();startDay();return}
-  if(a==='cont'){S=load();S.day++;startDay();return}
+  if(a==='cont'){S=load();S.phase==='summary'?nextDay():showIntro(0);return}
   if(a==='play'){begin();return}
-  if(a==='next'){S.day++;startDay();return}
-  if(a==='retry'){if(snap){S=JSON.parse(snap);begin()}return}
-  if(a==='ending'){showEnding();return}
-  if(!S||!(S.phase==='play'||S.phase==='wrap'))return;
-  if(a==='pause'){S.paused=!S.paused;if(S.paused)showSheet(`<h4>☕ พักกาแฟ</h4><p style="color:var(--muted);margin:0 0 12px">เวลาในออฟฟิศหยุดเดินอยู่</p><button class="btn big" data-a="resume" style="width:100%">กลับไปทำงาน</button>`),openSheet={pause:1};return}
-  if(a==='resume'){S.paused=false;closeSheet();last=performance.now();return}
-  if(a==='closeSheet'){if(el&&el.id==='sheet'&&openSheet&&openSheet.pause)return;if(openSheet&&openSheet.pause){S.paused=false;last=performance.now()}closeSheet();return}
-  if(S.block)return;
-  if(a==='pick'){const it=S.tray.find(x=>x.id==v);if(!it)return;openSheet={pick:it.id};renderPick(it);return}
-  if(a==='back'){const it=S.tray.find(x=>x.id==openSheet?.pick);if(it)renderPick(it);return}
-  if(a==='to'){const it=S.tray.find(x=>x.id==openSheet?.pick);if(!it){closeSheet();return}
-    if(v==='deleg'){renderPick(it,'deleg');return}
-    const [d,role]=v.split(':');S.tray=S.tray.filter(x=>x!==it);closeSheet();route(it,d,role);dirty=true;return}
-  if(a==='mode'){if(v===S.mode)return;const from=S.mode;block(.8,{title:`${CTX[from].n} → ${CTX[v].n}`},'ย้ายที่…',()=>{S.mode=v;dirty=true});return}
-  if(a==='work'){const it=S.lists[S.mode].find(x=>x.id==v);if(!it)return;
-    if(S.job&&S.job.id===it.id)return;
-    if(S.job){toast('ทำทีละอย่างนะ งานเดิมยังไม่เสร็จ','warn');return}
-    S.job={id:it.id,ctx:S.mode,t:it.size*1.8,total:it.size*1.8};dirty=true;return}
-  if(a==='alert'){const al=S.alerts.find(x=>x.id==v);if(!al)return;S.alerts=S.alerts.filter(x=>x!==al);resolveAlert(al,true);return}
-  if(a==='nudge'){const w=S.waiting.find(w=>w.item.id==v);if(!w)return;w.stale=false;w.t=4;w.total=4;toast(`ทวง${ROLES[w.role].name}แล้ว`,'');dirty=true;return}
-  if(a==='view'){openSheet={view:v};renderView(v);return}
-  if(a==='home'){goHome();return}
+  if(a==='next'){nextDay();return}
+  if(a==='perk'){newWeek(v);return}
+  if(!S||S.phase!=='play')return;
+  if(a==='p'){resolvePop(v);return}
+  if(S.pop.length)return;
+  if(a==='close'){closeSheet();after();return}
+  if(a==='clar'){S.clar={i:v!=null?+v:0};render();return}
+  if(a==='skip'){S.clar.i=(S.clar.i+1)%S.tray.length;render();return}
+  if(a==='back'){S.clar.deleg=false;renderClar();return}
+  if(a==='to'){const it=S.tray[S.clar.i];if(!it)return;
+    if(v==='deleg'){S.clar.deleg=true;renderClar();return}
+    const [d,role]=v.split(':');S.clar.deleg=false;const i=S.tray.indexOf(it);S.tray.splice(i,1);
+    const done=route(it,d,role);if(!done)S.tray.splice(i,0,it),S.clar.i=i+1;
+    if(S.clar.i>=S.tray.length)S.clar.i=0;
+    if(!S.tray.length){closeSheet();toast('ถาดว่างแล้ว หัวโล่ง 😌','good')}
+    after();return}
+  if(a==='mode'){if(v===S.mode)return;advance(perk('shoes')?5:10);S.mode=v;after();return}
+  if(a==='work'){const it=S.lists[S.mode].find(x=>x.id==v);if(!it)return;S.lists[S.mode]=S.lists[S.mode].filter(x=>x!==it);doWork(it,true);after();return}
+  if(a==='rest'){advance(15);S.energy=Math.min(110,S.energy+15+(perk('coffee')?10:0));toast('พักหายใจ แรงฟื้นนิดหน่อย');after();return}
+  if(a==='wait'){const nm=[...S.calendar].sort((a,b)=>a.time-b.time)[0];if(nm&&nm.time>S.min)advance(nm.time-S.min);after();return}
+  if(a==='nudge'){const w=S.waiting.find(w=>w.item.id==v);if(!w)return;advance(5);w.stale=false;S.ev=S.ev.filter(e=>!(e.type==='lost'&&e.id===w.item.id));sched(S.min+30,'ret',{id:w.item.id});toast(`ทวง${ROLES[w.role].name}แล้ว`);closeSheet();after();return}
+  if(a==='view'){renderView(v);return}
+  if(a==='review'){renderView('review');return}
+  if(a==='doReview'){closeSheet();advance(60);const q=1+reviewChecks().filter(c=>c[1]).length;S.reviewQ=Math.min(3,q);S.reviewed=true;
+    if(S.drawer.length)gain(S.drawer.length*5,'ไอเดียในลิ้นชักกลายเป็นข้อเสนอดี ๆ');toast(`ทบทวนเสร็จ สัปดาห์หน้าได้เลือกของ ${S.reviewQ} อย่าง`,'good');after();return}
+  if(a==='home'){endDay();return}
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;
-  if(b.id==='sheet'&&e.target!==b)return; act(b.dataset.a,b.dataset.v,b)});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&S&&(S.phase==='play'||S.phase==='wrap')&&!S.paused)act('pause')});
-// idea items bound for a future day
-const _route=route;
-route=function(it,d,role){if(it.returnDay!=null&&d==='drawer'){S.drawer.push(it);dirty=true;return gain(3,'เก็บไว้ในลิ้นชัก รอวันเปิดรับสมัคร')}
-  if(it.returnDay!=null&&d==='now')return block(2,it,'กำลังสมัคร…',()=>toast('ยังไม่เปิดรับสมัครเลย ต้องรอวันศุกร์','warn'));
-  return _route(it,d,role)};
-setInterval(tick,100);
+document.addEventListener('click',e=>{
+  if(e.target.id==='sheet'){act('close');return}
+  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v)});
 showTitle();
 </script>
