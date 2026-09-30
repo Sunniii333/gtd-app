@@ -297,7 +297,7 @@ function route(it,d,role){
     if(k==='info')return block(1.2,it,'อ่าน…',()=>toast('อ่านจบแล้ว… แต่จะจำได้ไหมนะ'));
     if(k==='meeting')return misfit(it,'ยังไม่ถึงเวลานัดเลย');
     if(k==='client')return misfit(it,'เรื่องใหญ่ขนาดนี้ทำรวดเดียวไม่จบหรอก');
-    const dur=it.size<=1?1.1:it.size*2.6;
+    const dur=it.size<=1?1:it.size*2.2;
     return block(dur,it,'กำลังทำ',()=>complete(it,'now'),it.size>=3?'งานนี้ยาวแฮะ… ถาดเริ่มพูนแล้ว':'');
   }
   if(CTX[d]){
@@ -310,7 +310,7 @@ function route(it,d,role){
   }
   if(d==='deleg'){
     const r=ROLES[role];
-    if(k==='deleg'&&it.role===role){const T=13+Math.random()*8;S.waiting.push({item:it,role,t:T,total:T,willStale:Math.random()<.4,stale:false,staleT:0});dirty=true;return gain(5,`ฝาก${r.name}แล้ว`)}
+    if(k==='deleg'&&it.role===role){const T=13+Math.random()*8;S.waiting.push({item:it,role,t:T,total:T,willStale:Math.random()<.3,stale:false,staleT:0});dirty=true;return gain(5,`ฝาก${r.name}แล้ว`)}
     S.stress+=3;S.returns.push({item:it,t:5,msg:`${r.name}: อันนี้ไม่ใช่งานฝ่าย${r.dept}นะ ส่งคืน`});return toast(`ส่งให้${r.name}แล้ว…`);
   }
   if(d==='cal'){if(k==='meeting'){S.calendar.push(it);dirty=true;return gain(3,'ลงปฏิทินแล้ว')}return misfit(it,'ไม่มีเวลานัดให้ลงปฏิทินนะ')}
@@ -346,7 +346,8 @@ function tick(){
   if(S.phase==='play'){S.min+=dt*mps();S.elapsed+=dt;if(S.min>=1080){S.min=1080;enterWrap()}}
   else{S.min+=dt*1.5;if(S.min>=1140){goHome();return}}
   if(S.phase==='play'){
-    S.spawnT-=dt;if(S.spawnT<=0){spawnRandom();S.spawnT=cfg().spawn*(.7+Math.random()*.6)}
+    // ponytail: casual pacing, mail only arrives while the tray is nearly clear, so there is always time for the lists
+    S.spawnT-=dt;if(S.spawnT<=0){if(S.tray.length<3){spawnRandom();S.spawnT=cfg().spawn*1.8*(.8+Math.random()*.4)}else S.spawnT=2}
     (cfg().clients||[]).forEach(([f,ci],i)=>{if(!S.fired.includes(i)&&S.elapsed>=f*cfg().len){S.fired.push(i);spawnClient(ci)}});
   }
   if(S.block){S.block.t-=dt;if(S.block.t<=0){const b=S.block;S.block=null;b.done&&b.done();dirty=true}}
@@ -355,7 +356,7 @@ function tick(){
   for(const r of S.returns){r.t-=dt;if(r.t<=0){addToTray(r.item,true);toast(r.msg,'warn')}}S.returns=S.returns.filter(r=>r.t>0);
   for(const w of S.waiting){
     if(w.stale){w.staleT-=dt;if(w.staleT<=0){w.lost=true;lose(10,10,`${ROLES[w.role].name}ลืมเรื่อง "${w.item.title}" ไปแล้ว!`)}}
-    else{w.t-=dt;if(w.willStale&&w.t<=w.total/2){w.stale=true;w.willStale=false;w.staleT=15;dirty=true}
+    else{w.t-=dt;if(w.willStale&&w.t<=w.total/2){w.stale=true;w.willStale=false;w.staleT=30;dirty=true}
       else if(w.t<=0){w.finished=true;gain(15,`${ROLES[w.role].name}: เรียบร้อย!`)}}}
   if(S.waiting.some(w=>w.lost||w.finished)){S.waiting=S.waiting.filter(w=>!w.lost&&!w.finished);dirty=true}
   for(const a of S.alerts){a.t-=dt;if(a.t<=0){a.gone=true;resolveAlert(a,false)}}
@@ -364,10 +365,10 @@ function tick(){
   S.sched=S.sched.filter(e=>!e.done);
   const st=stalled();
   for(const c of S.clients){if(c.done||c.gone)continue;
-    if(st.includes(c))c.mood-=dt*2.6;else c.mood=Math.min(100,c.mood+dt);
+    if(st.includes(c))c.mood-=dt*1.2;else c.mood=Math.min(100,c.mood+dt);
     if(c.mood<=0){c.gone=true;lose(30,15,`${c.name}ยกเลิกงาน! รอนานเกินไป`);S.tray=S.tray.filter(x=>x.clientId!==c.id);
       for(const k in S.lists)S.lists[k]=S.lists[k].filter(x=>x.clientId!==c.id);dirty=true}}
-  let inc=.22*S.tray.length+1.0*st.length+.9*S.waiting.filter(w=>w.stale).length;
+  let inc=.12*S.tray.length+.5*st.length+.4*S.waiting.filter(w=>w.stale).length;
   if(!S.tray.length&&!S.block)inc-=1.4;
   if(S.phase==='wrap')inc*=.5;
   S.stress=Math.max(0,S.stress+inc*dt);
@@ -376,10 +377,10 @@ function tick(){
 }
 function fire(e){
   if(e.type==='meet'){const inCal=S.calendar.find(x=>x.id===e.itemId);
-    if(inCal){S.alerts.push({id:id(),type:'meet',itemId:e.itemId,title:inCal.title,t:14,total:14});dirty=true}
+    if(inCal){S.alerts.push({id:id(),type:'meet',itemId:e.itemId,title:inCal.title,t:22,total:22});dirty=true}
     else{const inTray=S.tray.find(x=>x.id===e.itemId);S.tray=S.tray.filter(x=>x.id!==e.itemId);
       const t=inTray?inTray.title:'นัดวันนี้';lose(15,12,`พลาดนัด! ${t}`);dirty=true}}
-  if(e.type==='q'){S.alerts.push({id:id(),type:'q',itemId:e.itemId,title:e.q,t:12,total:12});dirty=true}
+  if(e.type==='q'){S.alerts.push({id:id(),type:'q',itemId:e.itemId,title:e.q,t:22,total:22});dirty=true}
   if(e.type==='complain'){lose(10,8,`หัวหน้า: เรื่อง "${e.title}" ไปถึงไหนแล้ว?`)}
 }
 function resolveAlert(a,acted){
@@ -426,7 +427,7 @@ function hud(){
     $('bHint').textContent=S.block.hint||(S.tray.length>=6?'ถาดใกล้เต็มแล้ว!':'')}
   if(S.job){const e=document.querySelector(`[data-job="${S.job.id}"]`);if(e)e.style.width=(100*(1-S.job.t/S.job.total))+'%'}
   document.querySelectorAll('[data-at]').forEach(e=>{const a=S.alerts.find(a=>a.id==e.dataset.at)||S.waiting.find(w=>w.item.id==e.dataset.at);
-    if(a)e.style.width=(100*(a.staleT!=null&&a.stale?a.staleT/15:a.t/a.total))+'%'});
+    if(a)e.style.width=(100*(a.staleT!=null&&a.stale?a.staleT/30:a.t/a.total))+'%'});
   document.querySelectorAll('[data-mood]').forEach(e=>{const c=S.clients.find(c=>c.id==e.dataset.mood);if(c){e.style.width=Math.max(0,c.mood)+'%';e.style.background=c.mood>60?'var(--ok)':c.mood>30?'var(--warn)':'var(--stamp)'}});
 }
 function render(){
@@ -580,11 +581,11 @@ function act(a,v,el){
   if(a==='to'){const it=S.tray.find(x=>x.id==openSheet?.pick);if(!it){closeSheet();return}
     if(v==='deleg'){renderPick(it,'deleg');return}
     const [d,role]=v.split(':');S.tray=S.tray.filter(x=>x!==it);closeSheet();route(it,d,role);dirty=true;return}
-  if(a==='mode'){if(v===S.mode)return;const from=S.mode;block(1.3,{title:`${CTX[from].n} → ${CTX[v].n}`},'ย้ายที่…',()=>{S.mode=v;dirty=true});return}
+  if(a==='mode'){if(v===S.mode)return;const from=S.mode;block(.8,{title:`${CTX[from].n} → ${CTX[v].n}`},'ย้ายที่…',()=>{S.mode=v;dirty=true});return}
   if(a==='work'){const it=S.lists[S.mode].find(x=>x.id==v);if(!it)return;
     if(S.job&&S.job.id===it.id)return;
     if(S.job){toast('ทำทีละอย่างนะ งานเดิมยังไม่เสร็จ','warn');return}
-    S.job={id:it.id,ctx:S.mode,t:it.size*2.4,total:it.size*2.4};dirty=true;return}
+    S.job={id:it.id,ctx:S.mode,t:it.size*1.8,total:it.size*1.8};dirty=true;return}
   if(a==='alert'){const al=S.alerts.find(x=>x.id==v);if(!al)return;S.alerts=S.alerts.filter(x=>x!==al);resolveAlert(al,true);return}
   if(a==='nudge'){const w=S.waiting.find(w=>w.item.id==v);if(!w)return;w.stale=false;w.t=4;w.total=4;toast(`ทวง${ROLES[w.role].name}แล้ว`,'');dirty=true;return}
   if(a==='view'){openSheet={view:v};renderView(v);return}
