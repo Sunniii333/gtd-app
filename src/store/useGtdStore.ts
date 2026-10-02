@@ -33,7 +33,7 @@ interface GtdState extends GtdData {
   createProject: (p: { name: string; outcome?: string; firstAction?: NewItem; fromItemId?: string }) => string
   updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'outcome'>>) => void
   /** Edit: fixes a project's name. */
-  renameProject: (id: string, name: string) => void
+  editProject: (id: string, name: string) => void
   completeProject: (id: string) => void
   setProjectStatus: (id: string, status: 'active' | 'someday') => void
 
@@ -101,15 +101,9 @@ export const useGtdStore = create<GtdState>()(
             items: s.items.map((i) => (i.id === id ? { ...i, ...patch, updatedAt: Date.now() } : i)),
           })),
 
-        editItem: (id, { title, notes }) => {
-          if (!title.trim() || get().items.find((i) => i.id === id)?.status === 'done') return
-          set((s) => ({
-            items: s.items.map((i) =>
-              i.id === id
-                ? { ...i, title: title.trim(), notes: notes?.trim() || undefined, updatedAt: Date.now() }
-                : i,
-            ),
-          }))
+        editItem: (id, text) => {
+          const next = gtd.editItem(data(), id, text, Date.now())
+          set({ items: next.items })
         },
 
         completeItem: (id) => apply(gtd.completeItem(data(), id, Date.now())),
@@ -145,10 +139,7 @@ export const useGtdStore = create<GtdState>()(
         updateProject: (id, patch) =>
           set((s) => ({ projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
 
-        renameProject: (id, name) => {
-          if (!name.trim()) return
-          set((s) => ({ projects: s.projects.map((p) => (p.id === id ? { ...p, name: name.trim() } : p)) }))
-        },
+        editProject: (id, name) => set({ projects: gtd.editProject(data(), id, name).projects }),
 
         completeProject: (id) => {
           const next = gtd.completeProject(data(), id, Date.now())

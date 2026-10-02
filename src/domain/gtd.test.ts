@@ -4,6 +4,8 @@ import {
   completeItem,
   completeProject,
   deleteItem,
+  editItem,
+  editProject,
   migrateV1,
   normalizeContext,
   openItemsForProject,
@@ -175,5 +177,47 @@ describe('migrating data from the first version', () => {
     expect(parseBackup(JSON.stringify(v2), TODAY).items).toHaveLength(1)
     expect(() => parseBackup('{"items":[{"id":1}],"projects":[]}', TODAY)).toThrow()
     expect(() => parseBackup('nope', TODAY)).toThrow()
+  })
+})
+
+describe('edit', () => {
+  const data = (patch: Partial<Item> = {}): GtdData => ({
+    items: [item({ title: 'Cal venu', notes: 'old', context: '@calls', projectId: 'p', ...patch })],
+    projects: [],
+  })
+
+  it('rewords an item without moving it to another list, context or project', () => {
+    const [edited] = editItem(data(), 'i', { title: 'Call venue', notes: 'Ask about parking' }, 5).items
+    expect(edited).toMatchObject({
+      title: 'Call venue',
+      notes: 'Ask about parking',
+      status: 'next',
+      context: '@calls',
+      projectId: 'p',
+      updatedAt: 5,
+    })
+  })
+
+  it('trims the wording, and clearing the notes removes them', () => {
+    const [edited] = editItem(data(), 'i', { title: '  Call venue ', notes: '   ' }, 5).items
+    expect(edited.title).toBe('Call venue')
+    expect(edited.notes).toBeUndefined()
+  })
+
+  it('ignores a blank title, so an item is never left without a name', () => {
+    expect(editItem(data(), 'i', { title: '   ' }, 5).items[0].title).toBe('Cal venu')
+  })
+
+  it('leaves a completed item as the record of what was done', () => {
+    expect(editItem(data({ status: 'done' }), 'i', { title: 'Call venue' }, 5).items[0].title).toBe('Cal venu')
+  })
+
+  it('fixes a project name, ignoring a blank one and leaving a done project as it was', () => {
+    const projects = [project({ id: 'a', name: 'Plan ofsite' }), project({ id: 'b', name: 'Old', status: 'done' })]
+    let next: GtdData = { items: [], projects }
+    next = editProject(next, 'a', ' Plan offsite ')
+    next = editProject(next, 'a', '  ')
+    next = editProject(next, 'b', 'New')
+    expect(next.projects.map((p) => p.name)).toEqual(['Plan offsite', 'Old'])
   })
 })

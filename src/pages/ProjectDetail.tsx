@@ -13,12 +13,12 @@ export function ProjectDetail() {
   const allItems = useGtdStore((s) => s.items)
   const addItem = useGtdStore((s) => s.addItem)
   const updateProject = useGtdStore((s) => s.updateProject)
-  const renameProject = useGtdStore((s) => s.renameProject)
+  const editProject = useGtdStore((s) => s.editProject)
   const completeProject = useGtdStore((s) => s.completeProject)
   const setProjectStatus = useGtdStore((s) => s.setProjectStatus)
   const askWhatsNext = useGtdStore((s) => s.askWhatsNext)
   const [showDone, setShowDone] = useState(false)
-  const [renaming, setRenaming] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const { open, parked, done } = useMemo(() => {
     const mine = allItems.filter((i) => i.projectId === id)
@@ -61,7 +61,7 @@ export function ProjectDetail() {
       </div>
       <Page
         title={project.name}
-        action={!renaming && <EditButton label="Rename project" onClick={() => setRenaming(true)} />}
+        action={project.status !== 'done' && !editing && <EditButton label="Edit project name" onClick={() => setEditing(true)} />}
         subtitle={
           project.status === 'done'
             ? 'Completed.'
@@ -70,15 +70,15 @@ export function ProjectDetail() {
               : undefined
         }
       >
-        {renaming && (
+        {editing && (
           <div className="mb-6">
             <EditForm
               title={project.name}
               onSave={({ title }) => {
-                renameProject(project.id, title)
-                setRenaming(false)
+                editProject(project.id, title)
+                setEditing(false)
               }}
-              onCancel={() => setRenaming(false)}
+              onCancel={() => setEditing(false)}
             />
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, inputClass } from './ui'
+import { Button, inputClass, rowActionClass } from './ui'
 
 interface EditFormProps {
   title: string
@@ -63,7 +63,7 @@ export function EditButton({ onClick, label = 'Edit' }: { onClick: () => void; l
       onClick={onClick}
       title="Fix the wording"
       aria-label={label}
-      className="px-2 py-1 text-sm text-muted opacity-60 hover:text-ink group-hover:opacity-100"
+      className={`${rowActionClass} hover:text-ink`}
     >
       ✎
     </button>

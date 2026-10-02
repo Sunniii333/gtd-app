@@ -70,46 +70,14 @@ describe('re-filing', () => {
 })
 
 describe('editing', () => {
-  it('rewords an item without moving it to another list', () => {
+  it('rewords an item and a project in place', () => {
     const projectId = store().createProject({
-      name: 'P',
+      name: 'Plan ofsite',
       firstAction: { title: 'Cal venu', status: 'next', context: '@calls' },
     })
     store().editItem(store().items[0].id, { title: 'Call venue', notes: 'Ask about parking' })
-    expect(store().items[0]).toMatchObject({
-      title: 'Call venue',
-      notes: 'Ask about parking',
-      status: 'next',
-      context: '@calls',
-      projectId,
-    })
-  })
-
-  it('trims the wording, and clearing the notes removes them', () => {
-    store().addItem({ title: 'X', notes: 'old', status: 'next' })
-    store().editItem(store().items[0].id, { title: '  Buy milk ', notes: '   ' })
-    expect(store().items[0].title).toBe('Buy milk')
-    expect(store().items[0].notes).toBeUndefined()
-  })
-
-  it('ignores a blank title, so an item is never left without a name', () => {
-    store().addItem({ title: 'Buy milk', status: 'next' })
-    store().editItem(store().items[0].id, { title: '   ', notes: 'oat' })
-    expect(store().items[0].title).toBe('Buy milk')
-    expect(store().items[0].notes).toBeUndefined()
-  })
-
-  it('leaves a completed item as the record of what was done', () => {
-    store().addItem({ title: 'Buy milk', status: 'next' })
-    store().completeItem(store().items[0].id)
-    store().editItem(store().items[0].id, { title: 'Buy oat milk' })
-    expect(store().items[0].title).toBe('Buy milk')
-  })
-
-  it('renames a project, ignoring a blank name', () => {
-    const projectId = store().createProject({ name: 'Plan ofsite' })
-    store().renameProject(projectId, ' Plan offsite ')
-    store().renameProject(projectId, '  ')
+    store().editProject(projectId, 'Plan offsite')
+    expect(store().items[0]).toMatchObject({ title: 'Call venue', notes: 'Ask about parking', status: 'next', projectId })
     expect(store().projects[0].name).toBe('Plan offsite')
   })
 })

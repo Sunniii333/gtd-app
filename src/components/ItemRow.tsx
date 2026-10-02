@@ -5,7 +5,7 @@ import type { Item } from '../types'
 import { useGtdStore } from '../store/useGtdStore'
 import { formatAge, formatDay } from '../utils/date'
 import { EditButton, EditForm } from './EditForm'
-import { chipClass } from './ui'
+import { chipClass, rowActionClass } from './ui'
 
 interface ItemRowProps {
   item: Item
@@ -98,7 +98,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
             onClick={() => reconsider(item.id)}
             title="Send back to the Inbox to clarify again"
             aria-label="Clarify again"
-            className="px-2 py-1 text-sm text-muted opacity-60 hover:text-ink group-hover:opacity-100"
+            className={`${rowActionClass} hover:text-ink`}
           >
             ↺
           </button>
@@ -107,7 +107,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
           type="button"
           onClick={() => deleteItem(item.id)}
           aria-label="Delete"
-          className="px-2 py-1 text-sm text-muted opacity-60 hover:text-pale-red-ink group-hover:opacity-100"
+          className={`${rowActionClass} hover:text-pale-red-ink`}
         >
           ×
         </button>
