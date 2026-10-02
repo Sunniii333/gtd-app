@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { isOpen } from '../domain/gtd'
 import type { Item } from '../types'
 import { useGtdStore } from '../store/useGtdStore'
 import { formatAge, formatDay } from '../utils/date'
-import { chipClass } from './ui'
+import { EditButton, EditForm } from './EditForm'
+import { chipClass, rowActionClass } from './ui'
 
 interface ItemRowProps {
   item: Item
@@ -22,7 +23,26 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
   const completeItem = useGtdStore((s) => s.completeItem)
   const deleteItem = useGtdStore((s) => s.deleteItem)
   const reconsider = useGtdStore((s) => s.reconsider)
+  const editItem = useGtdStore((s) => s.editItem)
+  const [editing, setEditing] = useState(false)
   const done = item.status === 'done'
+
+  if (editing) {
+    return (
+      <li className="step flex border-b border-dashed border-hairline py-3.5 last:border-0">
+        <EditForm
+          title={item.title}
+          notes={item.notes}
+          withNotes
+          onSave={(text) => {
+            editItem(item.id, text)
+            setEditing(false)
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      </li>
+    )
+  }
 
   return (
     <li className="step group flex items-start gap-3 border-b border-dashed border-hairline py-3.5 last:border-0">
@@ -71,13 +91,14 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {extra}
+        {!done && <EditButton onClick={() => setEditing(true)} />}
         {!done && item.status !== 'inbox' && (
           <button
             type="button"
             onClick={() => reconsider(item.id)}
             title="Send back to the Inbox to clarify again"
             aria-label="Clarify again"
-            className="px-2 py-1 text-sm text-muted opacity-60 hover:text-ink group-hover:opacity-100"
+            className={`${rowActionClass} hover:text-ink`}
           >
             ↺
           </button>
@@ -86,7 +107,7 @@ export function ItemRow({ item, showProject = true, showContext = true, showDate
           type="button"
           onClick={() => deleteItem(item.id)}
           aria-label="Delete"
-          className="px-2 py-1 text-sm text-muted opacity-60 hover:text-pale-red-ink group-hover:opacity-100"
+          className={`${rowActionClass} hover:text-pale-red-ink`}
         >
           ×
         </button>

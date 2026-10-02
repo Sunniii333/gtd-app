@@ -68,3 +68,16 @@ describe('re-filing', () => {
     expect(store().items[0].time).toBeUndefined()
   })
 })
+
+describe('editing', () => {
+  it('rewords an item and a project in place', () => {
+    const projectId = store().createProject({
+      name: 'Plan ofsite',
+      firstAction: { title: 'Cal venu', status: 'next', context: '@calls' },
+    })
+    store().editItem(store().items[0].id, { title: 'Call venue', notes: 'Ask about parking' })
+    store().editProject(projectId, 'Plan offsite')
+    expect(store().items[0]).toMatchObject({ title: 'Call venue', notes: 'Ask about parking', status: 'next', projectId })
+    expect(store().projects[0].name).toBe('Plan offsite')
+  })
+})

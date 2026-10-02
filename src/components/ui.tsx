@@ -9,6 +9,9 @@ export const labelClass = 'block text-[0.6875rem] font-medium uppercase tracking
 export const chipClass =
   'border border-hairline px-1.5 py-px font-mono text-[0.625rem] uppercase tracking-[0.08em] text-muted'
 
+/** The small icon buttons at the end of a row (✎ ↺ ×) that brighten when the row is hovered. */
+export const rowActionClass = 'px-2 py-1 text-sm text-muted opacity-60 group-hover:opacity-100'
+
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 const VARIANT: Record<Variant, string> = {

@@ -81,6 +81,31 @@ export function deleteItem(data: GtdData, id: string): ChangeResult {
   return { data: next, followUpProjectId: leftStalled ? projectId : undefined }
 }
 
+/**
+ * Edit: rewords an item without moving it to another list, context or project. A blank title is
+ * ignored, blank notes are dropped, and a done item stays as the record of what was done.
+ */
+export function editItem(data: GtdData, id: string, text: Pick<Item, 'title' | 'notes'>, now: number): GtdData {
+  const title = text.title.trim()
+  if (!title) return data
+  return {
+    ...data,
+    items: data.items.map((i) =>
+      i.id === id && i.status !== 'done' ? { ...i, title, notes: text.notes?.trim() || undefined, updatedAt: now } : i,
+    ),
+  }
+}
+
+/** Edit: fixes a project's name. A blank name is ignored, and a done project keeps its name. */
+export function editProject(data: GtdData, id: string, name: string): GtdData {
+  const trimmed = name.trim()
+  if (!trimmed) return data
+  return {
+    ...data,
+    projects: data.projects.map((p) => (p.id === id && p.status !== 'done' ? { ...p, name: trimmed } : p)),
+  }
+}
+
 /** A finished project closes whatever was still open for it, so nothing orphaned lingers. */
 export function completeProject(data: GtdData, id: string, now: number): GtdData {
   return {

@@ -4,6 +4,16 @@
 
 ## Language
 
+### Lists
+
+**Clarify**:
+การตัดสินใจว่า Item คืออะไรและควรไปอยู่ list ไหน (ทำได้ไหม เป็น Project ไหม ใครทำ เมื่อไร) ทำครั้งแรกจาก Inbox และทำซ้ำได้ด้วยการส่ง Item กลับ Inbox
+_Avoid_: process, sort
+
+**Edit**:
+การแก้ถ้อยคำของ Item (ชื่อและโน้ต) หรือของ Project (ชื่อ) เช่น แก้คำที่พิมพ์ผิดหรือเขียนให้ชัดขึ้น Item ยังอยู่ list เดิมและผูกกับ Project เดิม ถ้าต้องการย้าย list หรือเปลี่ยน context ต้อง Clarify ใหม่
+_Avoid_: update, modify, Clarify
+
 ### Sync
 
 **Device**:

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { EditButton, EditForm } from '../components/EditForm'
 import { ItemRow } from '../components/ItemRow'
 import { NextStepForm } from '../components/NextStepForm'
 import { Button, Page, SectionTitle, inputClass } from '../components/ui'
@@ -12,10 +13,12 @@ export function ProjectDetail() {
   const allItems = useGtdStore((s) => s.items)
   const addItem = useGtdStore((s) => s.addItem)
   const updateProject = useGtdStore((s) => s.updateProject)
+  const editProject = useGtdStore((s) => s.editProject)
   const completeProject = useGtdStore((s) => s.completeProject)
   const setProjectStatus = useGtdStore((s) => s.setProjectStatus)
   const askWhatsNext = useGtdStore((s) => s.askWhatsNext)
   const [showDone, setShowDone] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const { open, parked, done } = useMemo(() => {
     const mine = allItems.filter((i) => i.projectId === id)
@@ -58,6 +61,7 @@ export function ProjectDetail() {
       </div>
       <Page
         title={project.name}
+        action={project.status !== 'done' && !editing && <EditButton label="Edit project name" onClick={() => setEditing(true)} />}
         subtitle={
           project.status === 'done'
             ? 'Completed.'
@@ -66,6 +70,18 @@ export function ProjectDetail() {
               : undefined
         }
       >
+        {editing && (
+          <div className="mb-6">
+            <EditForm
+              title={project.name}
+              onSave={({ title }) => {
+                editProject(project.id, title)
+                setEditing(false)
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          </div>
+        )}
         <label className="block">
           <span className="font-mono text-[0.6875rem] uppercase tracking-wide text-muted">Outcome — what “done” looks like</span>
           <textarea
