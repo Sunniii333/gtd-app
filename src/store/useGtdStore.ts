@@ -22,6 +22,8 @@ interface GtdState extends GtdData {
   /** Turns an existing item (usually from the Inbox) into what it was clarified to be. */
   fileItem: (id: string, fields: NewItem) => void
   updateItem: (id: string, patch: Partial<Item>) => void
+  /** Edit: rewords an item. It stays on the same list, context and project. */
+  editItem: (id: string, text: Pick<Item, 'title' | 'notes'>) => void
   completeItem: (id: string) => void
   deleteItem: (id: string) => void
   /** Back to the Inbox to be clarified again (activating a Someday item, a missed calendar entry…). */
@@ -30,6 +32,8 @@ interface GtdState extends GtdData {
   /** Creates a project with its outcome and first next action, from an Inbox item or from scratch. */
   createProject: (p: { name: string; outcome?: string; firstAction?: NewItem; fromItemId?: string }) => string
   updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'outcome'>>) => void
+  /** Edit: fixes a project's name. */
+  renameProject: (id: string, name: string) => void
   completeProject: (id: string) => void
   setProjectStatus: (id: string, status: 'active' | 'someday') => void
 
@@ -97,6 +101,17 @@ export const useGtdStore = create<GtdState>()(
             items: s.items.map((i) => (i.id === id ? { ...i, ...patch, updatedAt: Date.now() } : i)),
           })),
 
+        editItem: (id, { title, notes }) => {
+          if (!title.trim() || get().items.find((i) => i.id === id)?.status === 'done') return
+          set((s) => ({
+            items: s.items.map((i) =>
+              i.id === id
+                ? { ...i, title: title.trim(), notes: notes?.trim() || undefined, updatedAt: Date.now() }
+                : i,
+            ),
+          }))
+        },
+
         completeItem: (id) => apply(gtd.completeItem(data(), id, Date.now())),
 
         deleteItem: (id) => apply(gtd.deleteItem(data(), id)),
@@ -129,6 +144,11 @@ export const useGtdStore = create<GtdState>()(
 
         updateProject: (id, patch) =>
           set((s) => ({ projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
+
+        renameProject: (id, name) => {
+          if (!name.trim()) return
+          set((s) => ({ projects: s.projects.map((p) => (p.id === id ? { ...p, name: name.trim() } : p)) }))
+        },
 
         completeProject: (id) => {
           const next = gtd.completeProject(data(), id, Date.now())
